@@ -2,6 +2,7 @@
 
 // Terminology:
 // - hash: A service name or JsonPath query (e.g, 'users', or '$.user')
+var services = []
 
 var config = {
   data: {
