@@ -1,0 +1,31 @@
+{
+  "name": "gooey",
+  "version": "0.0.0",
+  "description": "Data binding for the modern web",
+  "main": "index.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/slurmulon/gooey"
+  },
+  "keywords": [
+    "data",
+    "binding",
+    "pub",
+    "sub",
+    "reactive",
+    "event-driven"
+  ],
+  "author": "MadHax",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/slurmulon/gooey/issues"
+  },
+  "devDependencies": {
+    "gulp": "~3.9.0",
+    "gulp-babel": "~5.1.0",
+    "gulp-shell": "~0.4.2"
+  }
+}
