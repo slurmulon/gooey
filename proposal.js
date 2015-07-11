@@ -8,7 +8,7 @@
 var gooey = require('gooey')
 
 var foo = gooey
-  .service('cool', function(scope) { // valid args: scope, HTTP, JS, DOM
+  .service('cool', function(scope) { // valid args: scope, http, dom
     // .. generate some sorrt of data
     scope.data = [1, 5, 20]
 
@@ -32,7 +32,7 @@ foo.data().push(10) // this would trigger both basic subscriptions to trigger
 
 // Advanced usage (layers)
 
-foo.subscribe('*', 'DOM', data => {
+foo.subscribe('dom[*]', data => {
   console.log('responding to changes to the view layer')
 
   data.styles = 'color: #ff0000;'
