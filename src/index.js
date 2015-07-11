@@ -37,12 +37,15 @@ export class Service {
 
   broadcast(data, success?: Function, error?: Function, direction: String='bi'): Promise {
     // NOTE - this can certainly be an efficiency bottle-neck, perhaps offer optimization through configuration
-    let matches = this.subscriptions.map(scrip => scrip.matches(data, scrip))
+    let matches = this.subscriptions.filter(scrip => scrip.matches(data, scrip))
 
     // current service node. proxy data if this service's data update matches any subscriptions
-    let result = matches.length ? success(data) : data
-
-    // TODO - call error() as needed
+    // FIXME - ensure that no two identical subscriptions (pattern + data) are executed concurrently. they must be syncronized
+    let result = matches.length ? matches.map(scrip => 
+      scrip
+        .then(success)
+        .catch(error)
+    ) : data
 
     // direction: down
     if (children.length) {
@@ -53,6 +56,7 @@ export class Service {
     }
 
     // reached leaf node
+    // TODO - call error() as needed.
     return new Promise((resolve, reject) => { resolve({name: this.name, result}) })
   }
 
