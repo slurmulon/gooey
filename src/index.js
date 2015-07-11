@@ -69,7 +69,7 @@ export class Service {
 
   update(data, success?: Function, error?: Function) {
     this.scope = data
-    broadcast('*', success, error)
+    broadcast(data, success, error)
   }
 
   matches(data, scrip: Subscription) {
