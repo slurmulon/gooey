@@ -1,7 +1,7 @@
 'use strict';
 
-// Terminology:
-// - hash: A service name or JsonPath query (e.g, 'users', or '$.user')
+var jsonPath = require('jsonpath')
+
 var services = new Set()
 
 var config = {
@@ -27,31 +27,31 @@ var directions = ['up', 'down', 'bi']
 export class Service {
 
   constructor(name: String, factory: Function, parent?: Service, children?: Array, config?: Object=config) {
-    this.name        = name
-    this.parent      = parent
-    this.children    = children // TODO - ensure that child services can cross-communicate with parents
-    this.config      = config
-    this.scope       = {}
-    this.subscribers = []
-    this.isRoot      = !this.parent
+    this.name          = name
+    this.parent        = parent
+    this.children      = children // TODO - ensure that child services can cross-communicate with parents
+    this.config        = config
+    this.scope         = {}
+    this.subscriptions = []
+    this.isRoot        = !this.parent
 
     services.push(this)
 
     factory({scope}) // TODO - also pass in core services for http and dom
   }
 
-  broadcast(hash: String, data, success?: Function, error?: Function, direction: String='bi'): Promise {
-    // FIXME - look through all this.subscribers for a match - this can certainly be an efficiency bottle-neck
-    let matches = true
+  broadcast(data, success?: Function, error?: Function, direction: String='bi'): Promise {
+    // NOTE - this can certainly be an efficiency bottle-neck, perhaps offer optimization through configuration
+    let matches = this.subscriptions.map(scrip => scrip.matches(data, scrip))
 
-    // current service node, process data if this service's data update matches any subscriptions
-    let result = matches ? success(data) : null
+    // current service node. proxy data if this service's data update matches any subscriptions
+    let result = matches.length ? success(data) : data
 
     // direction: down
     if (children.length) {
       // "parallel" breadth, synchronized depth
       return Promise.all(children.map(child => {
-        return child.broadcast(hash, result, success, error, direction)
+        return child.broadcast(result, success, error, direction)
       }))
     }
 
@@ -62,7 +62,7 @@ export class Service {
   subscribe(pattern: String, then?: Function) {
     let scrip = new Subscription(pattern, success)
 
-    this.subscribers.add(scrip)
+    this.subscriptions.add(scrip)
 
     return scrip
   }
@@ -73,7 +73,18 @@ export class Service {
   }
 
   matches(data, scrip: Subscription) {
-    // TODO
+    var matches = {}
+
+    this.subscriptions.forEach(function(scrip) {
+      // TODO - determine between names and jsonpath queries
+      var jpMatches = jsonPath.query(data, scrip.pattern)
+
+      if (jpMatches.length) {
+        matches[scrip.pattern] = jpMatches
+      }
+    })
+
+    return matches
   }
 
   set relate(child: Service) {
@@ -88,6 +99,8 @@ export function service({name: String, factory: Function}) {
 
 export class Subscription {
 
+  // TODO - make "then" some combination of a Promise and a proxy handler
+  // https://github.com/lukehoban/es6features#proxies
   constructor(pattern: String, then: Function) {
     this.pattern = pattern
     this.then    = then

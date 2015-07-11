@@ -27,5 +27,8 @@
     "gulp": "~3.9.0",
     "gulp-babel": "~5.1.0",
     "gulp-shell": "~0.4.2"
+  },
+  "dependencies": {
+    "jsonpath": "~0.1.8"
   }
 }
