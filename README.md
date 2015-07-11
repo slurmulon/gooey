@@ -16,6 +16,7 @@ Gooey aims to be the first N-way (Restful API, JavaScript, DOM) data-binding lib
 
 * Entirely event based (no polling)
 * Flexible yet predictable pipelining of events
+* Functional parallelism (pure functions with immutable arguments that are parallelizable)
 * Canonical source of data (encourage accessing data from service as much as possible)
 * Transparency over common concurrency pitfalls such as deadlocks, livelocks, race conditions, etc.
 * Minimally invasive (choose when to use it, plays nice with others)
