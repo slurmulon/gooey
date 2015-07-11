@@ -120,4 +120,9 @@ export class Subscription {
 // subscribe to all services and react to any data changes withem them matching the provided hash
 // export function subscribe(hash: String, callback: Function)
 
-// export function broadcast(hash: String, data)
+// broadcast a data change across all services (searches for roots, leafs, and orphans)
+// export function broadcast(pattern: String, data)
+
+// export function component({name: String, factory: Function, apiUrl: String, templateUrl: String}) {
+//   // create a RestService with a child ModelService with a child DomService
+// }
