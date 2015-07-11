@@ -6,9 +6,6 @@ var services = new Set()
 
 var config = {
   data: {
-    sync: {
-      greedy  : true
-    },
     matching: {
       queries : true
     }  
@@ -21,15 +18,13 @@ var config = {
 
 var directions = ['up', 'down', 'bi']
 
-// TODO - create Gooey interface
-
 // a canonical, heiarchical source of data that can delegate updates to child sources
 export class Service {
 
   constructor(name: String, factory: Function, parent?: Service, children?: Array, config?: Object=config) {
     this.name          = name
     this.parent        = parent
-    this.children      = children // TODO - ensure that child services can cross-communicate with parents
+    this.children      = children
     this.config        = config
     this.scope         = {}
     this.subscriptions = []
@@ -46,6 +41,8 @@ export class Service {
 
     // current service node. proxy data if this service's data update matches any subscriptions
     let result = matches.length ? success(data) : data
+
+    // TODO - call error() as needed
 
     // direction: down
     if (children.length) {
@@ -69,32 +66,40 @@ export class Service {
 
   update(data, success?: Function, error?: Function) {
     this.scope = data
+
     broadcast(data, success, error)
   }
 
   matches(data, scrip: Subscription) {
-    var matches = {}
+    let matches = new Set()
 
-    this.subscriptions.forEach(function(scrip) {
-      // TODO - determine between names and jsonpath queries
-      var jpMatches = jsonPath.query(data, scrip.pattern)
+    if (config.data.matching.queries) {
+      this.subscriptions.forEach(function(scrip) {
+        // TODO - determine between names and jsonpath queries
+        let jpMatches = jsonPath.query(data, scrip.pattern)
 
-      if (jpMatches.length) {
-        matches[scrip.pattern] = jpMatches
-      }
-    })
+        if (jpMatches.length) {
+          matches.push({pattern: scrip.pattern, matches: jpMatches})
+        }
+      })
+    }
+
+    if (data === scrip.pattern) {
+      matches.push({pattern: scrip.pattern, data})
+    }
 
     return matches
   }
 
   set relate(child: Service) {
+    //  TODO - validate for cyclic dependencies
     this.children.push(child)
   }
 
 }
 
-export function service({name: String, factory: Function}) {
-  return new Service(name, factory)
+export function service({name: String, factory: Function, parent: Service, children: Array, config: Object}) {
+  return new Service(name, factory, parent, children, config)
 }
 
 export class Subscription {
