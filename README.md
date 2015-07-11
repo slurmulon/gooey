@@ -2,7 +2,7 @@
 
 > Data binding for the modern web
 
-Gooey aims to be the first N-way (Restful API, JavaScript, DOM) data-binding library for Single Page Applications using ES6.
+Gooey aims to be a simple full-stack (Restful API, JavaScript, DOM) data-binding library for Single Page Applications built with ES6.
 
 ## Features
 
@@ -27,8 +27,8 @@ Gooey aims to be the first N-way (Restful API, JavaScript, DOM) data-binding lib
 
 ## Rational
 
-Every JavaScript framework insists on creating its own data binding mechanism. Although a lot of great things
-have risen from this, we believe that people have learned a lot over the years and that is quickly becoming a wasted effort.
+Many JavaScript SPA frameworks insist on creating their own data binding mechanism in addition to their other features.
+Although a lot of great things have risen from this, we believe that people have learned a lot over the years and that is quickly becoming a wasted effort.
 
 There **is** a solution that can solve the majority of all modern needs, and we know this to be true because we keep
 re-creating the same things over and over.
