@@ -63,7 +63,7 @@ export class Service {
   subscribe(pattern: String, then?: Function) {
     let scrip = new Subscription(pattern, then)
 
-    this.subscriptions.push(scrip)
+    this.subscriptions.add(scrip)
 
     return scrip
   }
@@ -83,13 +83,13 @@ export class Service {
         let jpMatches = jsonPath.query(data, scrip.pattern)
 
         if (jpMatches.length) {
-          matchSet.push({pattern: scrip.pattern, matches: jpMatches})
+          matchSet.add({pattern: scrip.pattern, matches: jpMatches})
         }
       })
     }
 
     if (data === scrip.pattern) {
-      matchSet.push({pattern: scrip.pattern, data})
+      matchSet.add({pattern: scrip.pattern, data})
     }
 
     return matchSet
@@ -98,7 +98,7 @@ export class Service {
   //  TODO - validate for cyclic dependencies
   set relate(child: Service) {
     child.parent = this
-    this.children.push(child)
+    this.children.add(child)
   }
 
 }
