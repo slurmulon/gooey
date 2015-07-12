@@ -2,7 +2,7 @@
 
 var jsonPath = require('jsonpath')
 
-var services = new Set()
+var _services = new Set()
 
 var config = {
   data: {
@@ -30,7 +30,7 @@ export class Service {
     this.subscriptions = []
     this.isRoot        = !this.parent
 
-    services.add(this)
+    _services.add(this)
 
     factory({scope: this.scope}) // TODO - also pass in core services for http and dom
   }
@@ -107,7 +107,7 @@ export function service({name: String, factory: Function, parent: Service, child
 }
 
 export function services() {
-  return services
+  return _services
 }
 
 export class Subscription {
@@ -130,3 +130,7 @@ export class Subscription {
 // export function component({name: String, factory: Function, apiUrl: String, templateUrl: String}) {
 //   // create a RestService with a child ModelService with a child DomService
 // }
+
+export function clear() {
+  _services = new Set()
+}

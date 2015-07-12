@@ -4,7 +4,9 @@ var gooey  = require('../dist/index'),
     should = require('should')
 
 describe('Services', () => {
-  
+
+  beforeEach(gooey.clear)
+
   describe('constructor', () => {
     it('should add valid services to the global service pool', () => {
       var service  = new gooey.Service('foo', () => {})
