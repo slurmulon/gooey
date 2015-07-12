@@ -25,7 +25,7 @@ Gooey aims to be a simple full-stack (Restful API, JavaScript, DOM) data-binding
 * Identifyable DOM templating syntax
 * No shims other than Babel - it's time to move forward.
 
-## Rational
+## Rationale
 
 Many JavaScript SPA frameworks insist on creating their own data binding mechanism in addition to their other features.
 Although a lot of great things have risen from this, we believe that people have learned a lot over the years and that 
