@@ -4,10 +4,14 @@ var gulp  = require('gulp'),
     babel = require('gulp-babel'),
     shell = require('gulp-shell')
 
+gulp.task('default', ['compile'])
+
 gulp.task('clean', shell.task(['rm -rf dist']))
 
-gulp.task('default', ['clean'], function() {
+gulp.task('compile', ['clean'], function() {
   return gulp.src('index.js', {cwd: 'src', read: true})
     .pipe(babel())
     .pipe(gulp.dest('dist'))
 })
+
+gulp.task('test', ['compile'], shell.task(['mocha --reporter nyan --compilers js:mocha-traceur test/']))

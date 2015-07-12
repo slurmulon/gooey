@@ -75,7 +75,7 @@ export class Service {
   }
 
   matches(data, scrip: Subscription) {
-    let matches = new Set()
+    let matchSet = new Set()
 
     if (config.data.matching.queries) {
       this.subscriptions.forEach(function(scrip) {
@@ -83,16 +83,16 @@ export class Service {
         let jpMatches = jsonPath.query(data, scrip.pattern)
 
         if (jpMatches.length) {
-          matches.push({pattern: scrip.pattern, matches: jpMatches})
+          matchSet.push({pattern: scrip.pattern, matches: jpMatches})
         }
       })
     }
 
     if (data === scrip.pattern) {
-      matches.push({pattern: scrip.pattern, data})
+      matchSet.push({pattern: scrip.pattern, data})
     }
 
-    return matches
+    return matchSet
   }
 
   set relate(child: Service) {
