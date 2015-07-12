@@ -61,7 +61,7 @@ export class Service {
   }
 
   subscribe(pattern: String, then?: Function) {
-    let scrip = new Subscription(pattern, success)
+    let scrip = new Subscription(pattern, then)
 
     this.subscriptions.push(scrip)
 
@@ -118,6 +118,10 @@ export class Subscription {
   constructor(pattern: String, then: Function) {
     this.pattern = pattern
     this.then    = then
+  }
+
+  kill() {
+    // TODO - remove subscription from service
   }
 
 }
