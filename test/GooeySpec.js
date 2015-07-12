@@ -3,36 +3,51 @@ require('blanket')
 var gooey  = require('../dist/index'),
     should = require('should')
 
-describe('Services', function() {
+describe('Services', () => {
   
-  describe('constructor', function() {
-    it('should like work', function() {
-      should(true).be.eql(true)
+  describe('constructor', () => {
+    it('should add valid services to the global service pool', () => {
+      var service  = new gooey.Service('foo', () => {})
+      var services = gooey.services()
+
+      new Set([...services].map(s => s.name)).map_.entries_.should.containEql(service.name)
+    })
+
+    it('should prevent services with the same name from co-existing', () => {
+
+    })
+
+    it('should invoke the factory function with a reference to the Service scope object', () => {
+
+    })
+
+    it('should set `isRoot` to true only if the Service has no parent', () => {
+
     })
   })
 
-  describe('broadcast', function() {
+  describe('broadcast', () => {
     
   })
 
-  describe('subscribe', function() {
+  describe('subscribe', () => {
     
   })
 
-  describe('update', function() {
+  describe('update', () => {
     
   })
 
-  describe('matches', function() {
+  describe('matches', () => {
     
   })
 
-  describe('set', function() {
+  describe('set', () => {
     
   })
 
 })
 
-describe('Component', function() {
+describe('Component', () => {
 
 })

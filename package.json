@@ -30,7 +30,8 @@
     "mocha": "~2.2.5",
     "should": "~7.0.2",
     "blanket": "~1.1.7",
-    "mocha-traceur": "~2.1.0"
+    "mocha-traceur": "~2.1.0",
+    "lodash": "~3.10.0"
   },
   "dependencies": {
     "jsonpath": "~0.1.8"

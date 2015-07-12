@@ -21,7 +21,7 @@ var directions = ['up', 'down', 'bi']
 // a canonical, heiarchical source of data that can delegate updates to child sources
 export class Service {
 
-  constructor(name: String, factory: Function, parent?: Service, children?: Array, config?: Object=config) {
+  constructor(name: String, factory: Function, parent?: Service, children?: Set, config?: Object=config) {
     this.name          = name
     this.parent        = parent
     this.children      = children
@@ -30,9 +30,9 @@ export class Service {
     this.subscriptions = []
     this.isRoot        = !this.parent
 
-    services.push(this)
+    services.add(this)
 
-    factory({scope}) // TODO - also pass in core services for http and dom
+    factory({scope: this.scope}) // TODO - also pass in core services for http and dom
   }
 
   broadcast(data, success?: Function, error?: Function, direction: String='bi'): Promise {
@@ -63,7 +63,7 @@ export class Service {
   subscribe(pattern: String, then?: Function) {
     let scrip = new Subscription(pattern, success)
 
-    this.subscriptions.add(scrip)
+    this.subscriptions.push(scrip)
 
     return scrip
   }
@@ -104,6 +104,10 @@ export class Service {
 
 export function service({name: String, factory: Function, parent: Service, children: Array, config: Object}) {
   return new Service(name, factory, parent, children, config)
+}
+
+export function services() {
+  return services
 }
 
 export class Subscription {
