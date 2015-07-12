@@ -95,8 +95,9 @@ export class Service {
     return matchSet
   }
 
+  //  TODO - validate for cyclic dependencies
   set relate(child: Service) {
-    //  TODO - validate for cyclic dependencies
+    child.parent = this
     this.children.push(child)
   }
 
