@@ -55,7 +55,6 @@ describe('Services', () => {
         let testData = {id: 123}
         let evilData = {evil: true}
         let subscriptionResults = []
-        let bindSubsriptionResult = (data) => { subscriptionResults.push(data) }
 
         fooChildService1.subscribe('$.id', (data) => { subscriptionResults.push(data) })
         fooChildService2.subscribe('$.nothing',  () => { subscriptionResults.push(evilData) })
