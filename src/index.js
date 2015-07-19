@@ -23,9 +23,8 @@ export class Service {
 
   constructor(name: String, factory?: Function, parent?: Service, children?: Array=[], config?: Object=config) {
     this.name          = name
-    this.parent        = parent // TODO - ensure this is related as a child to this parent
-    this.children      = children.map(c => { c.parent = this; return c }) //children ? children.map(c => { c.parent = this; return c }) : []
-    // this.children      = new Set(children.map(c => { c.parent = this; return c} ))
+    this.parent        = parent ? parent.relate(this) : null // TODO - ensure this is related as a child to this parent
+    this.children      = this.relateTo(children)
     this.config        = config
     this.scope         = {}
     this.subscriptions = []
@@ -44,11 +43,11 @@ export class Service {
 
   broadcast(data, success: Function, error: Function, direction: String='down'): Promise {
     // NOTE - this can certainly be an efficiency bottle-neck, perhaps offer optimization through configuration
-    let matches = this.subscriptions.filter(scrip => { return !!this.matches(data, scrip).size })
+    const matches = this.subscriptions.filter(scrip => { return !!this.matches(data, scrip).size })
 
     // current service node. proxy data if this service's data update matches any subscriptions
     // FIXME - ensure that no two identical subscriptions (pattern + data) are executed concurrently. they must be syncronized
-    let result = matches.length ? matches.map(scrip => { return scrip.onMatch(data) }) : data
+    const result = matches.length ? matches.map(scrip => { return scrip.onMatch(data) }) : data
 
     // direction: down
     if (this.children.length) {
@@ -99,9 +98,14 @@ export class Service {
   }
 
   //  TODO - validate for cyclic dependencies
-  set relate(child: Service) {
+  relate(child: Service) {
     child.parent = this
-    this.children.add(child)
+    this.children.push(child)
+    return child
+  }
+
+  relateTo(children: Array) {
+    return children.map((c) => { c.parent = this; return c })
   }
 
 }
