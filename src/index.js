@@ -16,41 +16,39 @@ var config = {
   }
 }
 
-var directions = ['up', 'down', 'bi']
+var directions = ['up', 'down']
 
 // a canonical, heiarchical source of data that can delegate updates to child sources
 export class Service {
 
-  constructor(name: String, factory: Function, parent?: Service, children?: Set, config?: Object=config) {
+  constructor(name: String, factory: Function, parent?: Service, children?: Array, config?: Object=config) {
     this.name          = name
     this.parent        = parent
-    this.children      = children
+    this.children      = children || []
+    // this.children      = new Set(children.map(c => { c.parent = this; return c} ))
     this.config        = config
     this.scope         = {}
-    this.subscriptions = []
+    this.subscriptions = new Set()
     this.isRoot        = !this.parent
 
     _services.add(this)
 
-    factory({scope: this.scope}) // TODO - also pass in core services for http and dom
+    if (factory)
+      factory({scope: this.scope})
   }
 
-  broadcast(data, success?: Function, error?: Function, direction: String='bi'): Promise {
+  broadcast(data, success?: Function, error?: Function, direction: String='down'): Promise {
     // NOTE - this can certainly be an efficiency bottle-neck, perhaps offer optimization through configuration
-    let matches = this.subscriptions.filter(scrip => scrip.matches(data, scrip))
+    let matches = Array.from(this.subscriptions).filter(scrip => { return !!this.matches(data, scrip).size })
 
     // current service node. proxy data if this service's data update matches any subscriptions
     // FIXME - ensure that no two identical subscriptions (pattern + data) are executed concurrently. they must be syncronized
-    let result = matches.length ? matches.map(scrip => 
-      scrip
-        .then(success)
-        .catch(error)
-    ) : data
+    let result = matches.length ? matches.map(scrip => { return scrip.onMatch(data) }) : data
 
     // direction: down
-    if (children.length) {
+    if (this.children.length) {
       // "parallel" breadth, synchronized depth
-      return Promise.all(children.map(child => {
+      return Promise.all(this.children.map(child => {
         return child.broadcast(result, success, error, direction)
       }))
     }
@@ -82,7 +80,7 @@ export class Service {
         // TODO - determine between names and jsonpath queries
         let jpMatches = jsonPath.query(data, scrip.pattern)
 
-        if (jpMatches.length) {
+        if (jpMatches && jpMatches.length > 0) {
           matchSet.add({pattern: scrip.pattern, matches: jpMatches})
         }
       })
@@ -115,9 +113,9 @@ export class Subscription {
 
   // TODO - make "then" some combination of a Promise and a proxy handler
   // https://github.com/lukehoban/es6features#proxies
-  constructor(pattern: String, then: Function) {
+  constructor(pattern: String, onMatch: Function) {
     this.pattern = pattern
-    this.then    = then
+    this.onMatch = onMatch
   }
 
   kill() {
