@@ -9,11 +9,28 @@ describe('Services', () => {
 
   describe('constructor', () => {
     it('should add valid services to the global service pool', () => {
-      let service  = new gooey.Service('foo', () => {})
-      let services = gooey.services()
+      let service  = new gooey.Service('foo')
+      let services = Array.from(gooey.services())
 
-      new Set([...services].map(s => s.name)).map_.entries_.should.containEql(service.name)
+      services.map(s => s.name).should.containEql(service.name)
     })
+
+    it('should establish itself as a parent to any child services', () => {
+      let childService1 = new gooey.service('child1')
+      let childService2 = new gooey.service('child2')
+      let parentService = new gooey.service({name: 'parent', children: [childService1, childService2]})
+
+      childService1.parent.should.equal(parentService)
+      childService2.parent.should.equal(parentService)
+    })
+
+    it('should establish itself as a child to any parent service', () => {
+      let parentService = new gooey.Service('parent')
+      let childService  = new gooey.service({name: 'child', parent: parentService})
+
+      parentService.children.should.containEql(childService)
+    })
+
 
     it('should prevent services with the same name from co-existing', () => {
 
@@ -50,8 +67,10 @@ describe('Services', () => {
         })
 
         subscriptionResults.should.containEql(testData)
-        subscriptionResults.should.not.containEql()
+        subscriptionResults.should.not.containEql(evilData)
       })
+  
+      it('should modify data when appropriate before passign off data to child')
 
       it('should prevent concurrent processing of identical broadcast events (independent of direction)', () => {
 

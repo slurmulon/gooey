@@ -21,25 +21,30 @@ var directions = ['up', 'down']
 // a canonical, heiarchical source of data that can delegate updates to child sources
 export class Service {
 
-  constructor(name: String, factory: Function, parent?: Service, children?: Array, config?: Object=config) {
+  constructor(name: String, factory?: Function, parent?: Service, children?: Array=[], config?: Object=config) {
     this.name          = name
-    this.parent        = parent
-    this.children      = children || []
+    this.parent        = parent // TODO - ensure this is related as a child to this parent
+    this.children      = children.map(c => { c.parent = this; return c }) //children ? children.map(c => { c.parent = this; return c }) : []
     // this.children      = new Set(children.map(c => { c.parent = this; return c} ))
     this.config        = config
     this.scope         = {}
-    this.subscriptions = new Set()
+    this.subscriptions = []
     this.isRoot        = !this.parent
 
     _services.add(this)
 
-    if (factory)
+    if (parent) {
+      parent.children.push(this)
+    }
+
+    if (factory){
       factory({scope: this.scope})
+    }
   }
 
-  broadcast(data, success?: Function, error?: Function, direction: String='down'): Promise {
+  broadcast(data, success: Function, error: Function, direction: String='down'): Promise {
     // NOTE - this can certainly be an efficiency bottle-neck, perhaps offer optimization through configuration
-    let matches = Array.from(this.subscriptions).filter(scrip => { return !!this.matches(data, scrip).size })
+    let matches = this.subscriptions.filter(scrip => { return !!this.matches(data, scrip).size })
 
     // current service node. proxy data if this service's data update matches any subscriptions
     // FIXME - ensure that no two identical subscriptions (pattern + data) are executed concurrently. they must be syncronized
@@ -61,7 +66,7 @@ export class Service {
   subscribe(pattern: String, then?: Function) {
     let scrip = new Subscription(pattern, then)
 
-    this.subscriptions.add(scrip)
+    this.subscriptions.push(scrip)
 
     return scrip
   }
@@ -101,7 +106,7 @@ export class Service {
 
 }
 
-export function service({name: String, factory: Function, parent: Service, children: Array, config: Object}) {
+export function service({name, factory, parent, children, config}) {
   return new Service(name, factory, parent, children, config)
 }
 
