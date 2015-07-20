@@ -23,18 +23,14 @@ export class Service {
 
   constructor(name: String, factory?: Function, parent?: Service, children?: Array=[], config?: Object=config) {
     this.name          = name
-    this.parent        = parent ? parent.relate(this) : null // TODO - ensure this is related as a child to this parent
-    this.children      = this.relateTo(children)
+    this.parent        = parent ? parent.relateTo(this) : null
+    this.children      = this.relateToAll(children)
     this.config        = config
     this.scope         = {}
     this.subscriptions = []
     this.isRoot        = !this.parent
 
     _services.add(this)
-
-    if (parent) {
-      parent.children.push(this)
-    }
 
     if (factory){
       factory({scope: this.scope})
@@ -98,14 +94,13 @@ export class Service {
   }
 
   //  TODO - validate for cyclic dependencies
-  relate(child: Service) {
-    child.parent = this
+  relateTo(child: Service): Service {
     this.children.push(child)
-    return child
+    return this
   }
 
-  relateTo(children: Array) {
-    return children.map((c) => { c.parent = this; return c })
+  relateToAll(children: Array): Array {
+    return children.map(c => { c.parent = this; return c })
   }
 
 }
