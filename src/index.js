@@ -1,10 +1,11 @@
 'use strict';
 
-var jsonPath = require('jsonpath')
+var jsonPath = require('jsonpath'),
+           _ = require('lodash')
 
 var _services = new Set()
 
-var config = {
+var _config = {
   data: {
     matching: {
       queries : true
@@ -21,8 +22,9 @@ var directions = ['up', 'down']
 // a canonical, heiarchical source of data that can delegate updates to child sources
 export class Service {
 
-  constructor(name: String, factory?: Function, parent?: Service, children?: Array=[], config?: Object=config) {
+  constructor(name: String, factory?: Function, parent?: Service, children?: Array=[], config?: Object=_config) {
     this.name          = name
+    this.factory       = factory
     this.parent        = parent ? parent.relateTo(this) : null
     this.children      = this.relateToAll(children)
     this.config        = config
@@ -30,31 +32,39 @@ export class Service {
     this.subscriptions = []
     this.isRoot        = !this.parent
 
-    _services.add(this)
+    if (!name) {
+      throw 'Error: services require names'
+    }
+
+    if (!_.find(_services.map_.entries_, {name})) {
+      _services.add(this)
+    } else {
+      throw 'Error: service "${name}" has already been registered!'
+    }
 
     if (factory){
       factory({scope: this.scope})
     }
   }
 
+// TODO - integrate http://www.nczonline.net/blog/2014/04/22/creating-defensive-objects-with-es6-proxies/
   broadcast(data, success: Function, error: Function, direction: String='down'): Promise {
-    // NOTE - this can certainly be an efficiency bottle-neck, perhaps offer optimization through configuration
-    const matches = this.subscriptions.filter(scrip => { return !!this.matches(data, scrip).size })
+    const matches = this.subscriptions.filter(scrip => { return this.matches(data, scrip).size > 0 })
 
     // current service node. proxy data if this service's data update matches any subscriptions
     // FIXME - ensure that no two identical subscriptions (pattern + data) are executed concurrently. they must be syncronized
     const result = matches.length ? matches.map(scrip => { return scrip.onMatch(data) }) : data
 
     // direction: down
+    // "parallel" breadth, synchronized depth
     if (this.children.length) {
-      // "parallel" breadth, synchronized depth
       return Promise.all(this.children.map(child => {
         return child.broadcast(result, success, error, direction)
       }))
     }
 
     // reached leaf node
-    // TODO - call error() as needed.
+    // TODO - reject with error() as needed.
     return new Promise((resolve, reject) => { resolve({name: this.name, result}) })
   }
 
@@ -72,10 +82,11 @@ export class Service {
     broadcast(data, success, error)
   }
 
+  // TODO - turn into generator
   matches(data, scrip: Subscription) {
     let matchSet = new Set()
 
-    if (config.data.matching.queries) {
+    if (this.config.data.matching.queries) {
       this.subscriptions.forEach(function(scrip) {
         // TODO - determine between names and jsonpath queries
         let jpMatches = jsonPath.query(data, scrip.pattern)
@@ -141,3 +152,7 @@ export class Subscription {
 export function clear() {
   _services = new Set()
 }
+
+// Modules
+
+export class Module { }
