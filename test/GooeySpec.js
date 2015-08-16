@@ -156,16 +156,22 @@ describe('Services', () => {
     })
   })
 
-  // TODO/FIXME
   xdescribe('update', () => {
     it('should update the Service\'s canonical source of data and broadcast the change', () => {
-      const service = new gooey.Service('parent')
-      const scrip   = service.subscribe('$.foo', data => { data.matched = true })
-      const update  = service.update({foo: 'bar'}).then(data => { data.updated = true })
+      const testData = {foo: 'bar'}
+      const service  = new gooey.Service('parent')
 
-      update.then(up => {
-        console.log('UPDATE?', up)
+      const scrip    = service.subscribe('$.foo', data => {
+        data.matched = true
+        return data
       })
+
+      const update = service.update(testData).then(data => {
+        data.updated = true
+        return data
+      })
+
+      testData.should.eql({foo: 'bar', matched: true, updated: true})
     })
   })
 

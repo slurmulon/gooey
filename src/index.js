@@ -87,7 +87,7 @@ export class Service {
 
   // determines if a subscription path matches data
   matches(data, scrip: Subscription): Set {
-    let matchSet = new Set()
+    const matchSet = new Set()
 
     if (this.config.data.matching.queries) {
       const jpMatches = jsonPath.query(data, scrip.path)

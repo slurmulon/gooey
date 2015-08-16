@@ -1,6 +1,6 @@
 import * as gooey from 'index.js'
 
-var _ = require('lodash')
+import * as _ from 'lodash'
 
 export class WebComponent extends gooey.Service {
 
