@@ -2,16 +2,18 @@ import * as gooey from 'index.js'
 
 var _ = require('lodash')
 
-export class DomService extends gooey.Service {
+export class WebComponent extends gooey.Service {
 
-  constructor(name: String, factory: Function, parent?: Service, children?: Set, config?: Object) {
+  constructor(name: String, factory?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
     super(...arguments)
   }
 
-  subscribe(pattern: String, then?: Function) {
-    super.subscribe(pattern, then)
+  subscribe(path: String, then?: Function) {
+    super.subscribe(path, then)
 
     // TODO
   }
+
+  update()
 
 }

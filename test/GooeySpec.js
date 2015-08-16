@@ -1,7 +1,7 @@
 require('blanket')
 
-var gooey  = require('../dist/index'),
-    should = require('should')
+import * as gooey from '../dist/index'
+import should from 'should'
 
 describe('Services', () => {
 
