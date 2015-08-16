@@ -42,7 +42,7 @@ export class Service {
   }
 
   // TODO - clone data so that it is immutable
-  broadcast(data, success: Function, error: Function, direction: String='down'): Promise {
+  broadcast(data, success: Function = _.noop, error: Function = _.noop, direction: String = 'down'): Promise {
     // subscribers who match the current broadcast
     const matches = this.subscriptions.filter(scrip => { return !!this.matches(data, scrip).size })
 
@@ -60,10 +60,7 @@ export class Service {
 
     // leaf node
     return new Promise((resolve, reject) => {
-      resolve({
-        name   : this.name, 
-        result : success(result)
-      }) 
+      resolve(success(result))
     })
   }
 
@@ -85,7 +82,7 @@ export class Service {
   update(data, success?: Function, error?: Function): Promise {
     this.data = data
 
-    broadcast(data, success, error)
+    return this.broadcast(data, success, error)
   }
 
   // determines if a subscription path matches data
@@ -122,15 +119,15 @@ export class Service {
 
 }
 
-export function service({name, factory, parent, children, config}) {
+export function service({name, factory, parent, children, config}): Service {
   return new Service(name, factory, parent, children, config)
 }
 
-export function services() {
+export function services(): Set {
   return _services
 }
 
-export function isRegistered(name) {
+export function isRegistered(name): Boolean {
   return _.contains(Array.from(_services).map((s) => {return s.name}), name)
 }
 

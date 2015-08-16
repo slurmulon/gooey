@@ -115,6 +115,21 @@ describe('Services', () => {
         testData.foundBy.should.containEql('childService2')
       })
 
+      it('should not modify data and return it in the original state if no subscriptions match', () => {
+        const parentService = new gooey.Service('parent')
+        const childService  = new gooey.service({name: 'child', parent: parentService})
+        let testData = {avoid: true, foundBy: []}
+
+        childService.subscribe('$.nothing', (data) => {
+          data.foundBy.push('childService1')
+          return data
+        })
+
+        parentService.broadcast(testData)
+
+        testData.foundBy.should.be.empty
+      })
+
       it('should syncronize the execution of identical broadcast events (independent of direction)', () => {
 
       })
@@ -141,8 +156,17 @@ describe('Services', () => {
     })
   })
 
-  describe('update', () => {
-    
+  // TODO/FIXME
+  xdescribe('update', () => {
+    it('should update the Service\'s canonical source of data and broadcast the change', () => {
+      const service = new gooey.Service('parent')
+      const scrip   = service.subscribe('$.foo', data => { data.matched = true })
+      const update  = service.update({foo: 'bar'}).then(data => { data.updated = true })
+
+      update.then(up => {
+        console.log('UPDATE?', up)
+      })
+    })
   })
 
   describe('matches', () => {
@@ -158,9 +182,9 @@ describe('Services', () => {
     })
 
     it('should only perform jsonpath matching if the configuration permits (true)', () => {
-      const service     = new gooey.service({name: 'foo', config: {data: {matching: {queries: true} }}})
-      const activeData  = {find: true}
-      let   results     = []
+      const service    = new gooey.service({name: 'foo', config: {data: {matching: {queries: true} }}})
+      const activeData = {find: true}
+      let   results    = []
 
       service.subscribe('$.find', (data) => { results.push(data) })
       service.broadcast(activeData)
@@ -169,10 +193,10 @@ describe('Services', () => {
     })
 
     it('should return jsonpath matches from all relevant subscribers', () => {
-      const activeData  = {find: 'bar'}
-      const service     = new gooey.service({name: 'foo'})
-      const scription   = service.subscribe('$.find')
-      const matches     = service.matches(activeData, scription)
+      const activeData = {find: 'bar'}
+      const service    = new gooey.service({name: 'foo'})
+      const scription  = service.subscribe('$.find')
+      const matches    = service.matches(activeData, scription)
 
       Array.from(matches).should.eql([
         {path: '$.find', matches: ['bar']}
