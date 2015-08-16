@@ -39,9 +39,9 @@ describe('Services', () => {
 
     it('should prevent services with the same name from co-existing', () => {
       const service1 = new gooey.Service('foo')
-      const service2 = () => { new gooey.Service('foo') }
-
-      service2.should.throw()
+      const service2 = (() => { 
+        gooey.service('foo')
+      }).should.throw()
     })
 
     it('should set `isRoot` to true only if the Service has no parent', () => {
@@ -132,7 +132,13 @@ describe('Services', () => {
   })
 
   describe('subscribe', () => {
-    
+    it('should create a subscription and return it', () => {
+
+    })
+
+    it('should register the subscription with the Service upon creation', () => {
+
+    })
   })
 
   describe('update', () => {
@@ -169,7 +175,7 @@ describe('Services', () => {
       const matches     = service.matches(activeData, scription)
 
       Array.from(matches).should.eql([
-        {pattern: '$.find', matches: ['bar']}
+        {path: '$.find', matches: ['bar']}
       ])
     })
   })
