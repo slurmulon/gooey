@@ -33,6 +33,7 @@ export class Service {
     }
 
     this.name          = name
+    this.factory       = factory
     this.parent        = parent ? parent.relateTo(this) : null
     this.children      = this.relateToAll(children)
     this.config        = config
@@ -52,6 +53,7 @@ export class Service {
     const result  = matches.length ? matches.map(scrip => { return scrip.onMatch(data) }) : data
 
     // direction: down
+    // "parallel" breadth, synchronized depth
     if (this.children.length) {
       // "parallel" breadth, synchronized depth
       return Promise
@@ -154,3 +156,7 @@ export class Subscription {
 export function clear() {
   _services = new Set()
 }
+
+// Modules
+
+export class Module { }

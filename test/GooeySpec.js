@@ -8,6 +8,12 @@ describe('Services', () => {
   beforeEach(gooey.clear)
 
   describe('constructor', () => {
+    it('should not allow services to be defined without a name', () => {
+      (() => {
+        gooey.service()
+      }).should.throw()
+    })
+
     it('should add valid services to the global service pool', () => {
       const service  = new gooey.Service('foo')
       const services = Array.from(gooey.services())
