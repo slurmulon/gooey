@@ -1,14 +1,20 @@
 'use strict';
 
-var jsonPath = require('jsonpath')
+var jsonPath = require('jsonpath'),
+    _ = require('lodash')
 
 var _services = new Set()
 
-var config = {
+var _queue = []
+
+var _config = {
   data: {
     matching: {
       queries : true
-    }  
+    },
+    broadcast: {
+      ignoreFalsy: true
+    }
   },
 
   errors: {
@@ -21,7 +27,11 @@ var directions = ['up', 'down']
 // a canonical, heiarchical source of data that can delegate updates to child sources
 export class Service {
 
-  constructor(name: String, factory?: Function, parent?: Service, children?: Array=[], config?: Object=config) {
+  constructor(name: String, factory?: Function, parent?: Service, children?: Array=[], config?: Object=_config) {
+    if (name === undefined || isRegistered(name)) {
+      throw `Services must have unique names: ${name}`
+    }
+
     this.name          = name
     this.parent        = parent ? parent.relateTo(this) : null
     this.children      = this.relateToAll(children)
@@ -30,64 +40,62 @@ export class Service {
     this.subscriptions = []
     this.isRoot        = !this.parent
 
-    _services.add(this)
-
-    if (factory){
-      factory({scope: this.scope})
-    }
+    _services.add({name, service: this})
   }
 
+  // TODO - clone data so that it is immutable
   broadcast(data, success: Function, error: Function, direction: String='down'): Promise {
-    // NOTE - this can certainly be an efficiency bottle-neck, perhaps offer optimization through configuration
+    // subscribers who match the current broadcast
     const matches = this.subscriptions.filter(scrip => { return !!this.matches(data, scrip).size })
 
     // current service node. proxy data if this service's data update matches any subscriptions
-    // FIXME - ensure that no two identical subscriptions (pattern + data) are executed concurrently. they must be syncronized
-    const result = matches.length ? matches.map(scrip => { return scrip.onMatch(data) }) : data
+    const result  = matches.length ? matches.map(scrip => { return scrip.onMatch(data) }) : data
 
     // direction: down
     if (this.children.length) {
       // "parallel" breadth, synchronized depth
-      return Promise.all(this.children.map(child => {
-        return child.broadcast(result, success, error, direction)
-      }))
+      return Promise
+        .all(this.children.map(child => {
+          return child.broadcast(result, success, error, direction)
+        }))
     }
 
-    // reached leaf node
-    // TODO - call error() as needed.
-    return new Promise((resolve, reject) => { resolve({name: this.name, result}) })
+    // leaf node
+    return new Promise((resolve, reject) => {
+      resolve({
+        name   : this.name, 
+        result : success(result)
+      }) 
+    })
   }
 
-  subscribe(pattern: String, then?: Function) {
-    let scrip = new Subscription(pattern, then)
+  subscribe(pattern: String, then?: Function): Subscription {
+    const scrip = new Subscription(pattern, then)
 
     this.subscriptions.push(scrip)
 
     return scrip
   }
 
-  update(data, success?: Function, error?: Function) {
+  update(data, success?: Function, error?: Function): Promise {
     this.scope = data
 
     broadcast(data, success, error)
   }
 
-  matches(data, scrip: Subscription) {
+  matches(data, scrip: Subscription): Set {
     let matchSet = new Set()
 
-    if (config.data.matching.queries) {
-      this.subscriptions.forEach(function(scrip) {
-        // TODO - determine between names and jsonpath queries
-        let jpMatches = jsonPath.query(data, scrip.pattern)
+    if (this.config.data.matching.queries) {
+      const jpMatches = jsonPath.query(data, scrip.pattern)
 
-        if (jpMatches && jpMatches.length > 0) {
-          matchSet.add({pattern: scrip.pattern, matches: jpMatches})
-        }
-      })
+      if (jpMatches && !!jpMatches.length) {
+        matchSet.add({pattern: scrip.pattern, matches: jpMatches})
+      }
     }
 
-    if (data === scrip.pattern) {
-      matchSet.add({pattern: scrip.pattern, data})
+    if (data === scrip.pattern && !matchSet.contains(data)) {
+      matchSet.add({pattern: scrip.pattern, matches: [data]})
     }
 
     return matchSet
@@ -96,6 +104,7 @@ export class Service {
   //  TODO - validate for cyclic dependencies
   relateTo(child: Service): Service {
     this.children.push(child)
+
     return this
   }
 
@@ -111,6 +120,10 @@ export function service({name, factory, parent, children, config}) {
 
 export function services() {
   return _services
+}
+
+export function isRegistered(name) {
+  return _.contains(Array.from(_services).map((s) => {return s.name}), name)
 }
 
 export class Subscription {

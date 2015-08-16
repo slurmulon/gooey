@@ -9,69 +9,107 @@ describe('Services', () => {
 
   describe('constructor', () => {
     it('should add valid services to the global service pool', () => {
-      let service  = new gooey.Service('foo')
-      let services = Array.from(gooey.services())
+      const service  = new gooey.Service('foo')
+      const services = Array.from(gooey.services())
 
       services.map(s => s.name).should.containEql(service.name)
     })
 
-    it('should establish itself as a parent to any child services', () => {
-      let childService1 = new gooey.service('child1')
-      let childService2 = new gooey.service('child2')
-      let parentService = new gooey.service({name: 'parent', children: [childService1, childService2]})
+    it('should establish itself as a parent to all child services', () => {
+      const childService1 = new gooey.Service('child1')
+      const childService2 = new gooey.Service('child2')
+      const parentService = new gooey.service({name: 'parent', children: [childService1, childService2]})
 
       childService1.parent.should.equal(parentService)
       childService2.parent.should.equal(parentService)
     })
 
-    it('should establish itself as a child to any parent service', () => {
-      let parentService = new gooey.Service('parent')
-      let childService  = new gooey.service({name: 'child', parent: parentService})
+    it('should establish itself as a child to its parent service', () => {
+      const parentService = new gooey.Service('parent')
+      const childService  = new gooey.service({name: 'child', parent: parentService})
 
       parentService.children.should.containEql(childService)
     })
 
-
     it('should prevent services with the same name from co-existing', () => {
+      const service1 = new gooey.Service('foo')
+      const service2 = () => { new gooey.Service('foo') }
 
-    })
-
-    it('should invoke the factory function with a reference to the Service scope object', () => {
-
+      service2.should.throw()
     })
 
     it('should set `isRoot` to true only if the Service has no parent', () => {
+      const parentService = new gooey.Service('root')
+      const childService  = new gooey.service({name: 'child', parent: parentService})
 
+      parentService.isRoot.should.be.true
+      childService.isRoot.should.be.false
     })
   })
 
   describe('broadcast', () => {
     describe('when direction is `down`', () => {
-      it('should traverse child services (depth: syncronous, breadth: asynchronous)', () => {
-        let fooChildService1 = new gooey.Service('child1')
-        let fooChildService2 = new gooey.Service('child2')
-        let fooService = new gooey.Service('foo', null, null, [fooChildService1, fooChildService2])
+      it('should recursively traverse child services (depth: syncronous, breadth: asynchronous)', () => {
+        const childServiceA = new gooey.Service('childA')
+        const childServiceB = new gooey.Service('childB')
+        const childService1 = new gooey.Service('child1')
+        const childService2 = new gooey.service({name: 'child2', children: [childServiceA, childServiceB]})
+        const rootService   = new gooey.service({name: 'root',   children: [childService1, childService2]})
 
-        let testData = {id: 123}
-        let evilData = {evil: true}
-        let subscriptionResults = []
+        const testData1 = {root: true}
+        const testData2 = {inny: true}
+        const testData3 = {leaf: true}
+        const evilData  = {evil: true}
+        let   results   = []
 
-        fooChildService1.subscribe('$.id', (data) => { subscriptionResults.push(data) })
-        fooChildService2.subscribe('$.nothing',  () => { subscriptionResults.push(evilData) })
-        fooChildService2.subscribe('$.nothing2', () => { subscriptionResults.push(evilData) })
+        const resultPusher = (data) => { results.push(data) }
 
-        fooService.broadcast(testData, function(success) {
-          // FIXME - this isn't getting called
-          console.log('worked!', success)
+        rootService.subscribe('$.root',   resultPusher)
+        childService1.subscribe('$.inny', resultPusher)
+        childServiceA.subscribe('$.leaf', resultPusher)
+        childServiceB.subscribe('$.evil', resultPusher)
+
+        rootService.broadcast(testData1, (success) => {
+          success.touchedBy = 'root'
+          return success
         })
 
-        subscriptionResults.should.containEql(testData)
-        subscriptionResults.should.not.containEql(evilData)
+        rootService.broadcast(testData2, (success) => {
+          success.touchedBy = 'inny'
+          return success
+        })
+
+        rootService.broadcast(testData3, (success) => {
+          success.touchedBy = 'leaf'
+          return success
+        })
+
+        results.should.eql([testData1, testData2, testData3])
       })
   
-      it('should modify data when appropriate before passign off data to child')
+      it('should modify data when a subscription matches before passing off the data to child services', () => {
+        const parentService = new gooey.Service('parent')
+        const childService1 = new gooey.service({name: 'child1', parent: parentService})
+        const childService2 = new gooey.service({name: 'child2', parent: parentService})
+        const testData = {find: true, foundBy: []}
 
-      it('should prevent concurrent processing of identical broadcast events (independent of direction)', () => {
+        childService1.subscribe('$.find', (data) => {
+          data.foundBy.push('childService1')
+          return data
+        })
+
+        childService2.subscribe('$.find', (data) => {
+          data.foundBy.push('childService2')
+          return data
+        })
+
+        parentService.broadcast(testData)
+
+        testData.foundBy.should.containEql('childService1')
+        testData.foundBy.should.containEql('childService2')
+      })
+
+      it('should syncronize the execution of identical broadcast events (independent of direction)', () => {
 
       })
     })
@@ -81,8 +119,8 @@ describe('Services', () => {
 
       })
 
-      it('should prevent concurrent processing of identical broadcast events (independent of direction)', () => {
-        
+      it('should syncronize the execution of identical broadcast events (independent of direction)', () => {
+
       })
     })
   })
@@ -96,7 +134,38 @@ describe('Services', () => {
   })
 
   describe('matches', () => {
-    
+    it('should only perform jsonpath matching if the configuration permits (false)', () => {
+      const service     = new gooey.service({name: 'foo', config: {data: {matching: {queries: false} }}})
+      const passiveData = {ignore: true}
+      let   results     = []
+
+      service.subscribe('$.ignore', (data) => { results.push(data) })
+      service.broadcast(passiveData)
+
+      results.should.not.containEql(passiveData)
+    })
+
+    it('should only perform jsonpath matching if the configuration permits (true)', () => {
+      const service     = new gooey.service({name: 'foo', config: {data: {matching: {queries: true} }}})
+      const activeData  = {find: true}
+      let   results     = []
+
+      service.subscribe('$.find', (data) => { results.push(data) })
+      service.broadcast(activeData)
+
+      results.should.containEql(activeData)
+    })
+
+    it('should return jsonpath matches from all relevant subscribers', () => {
+      const activeData  = {find: 'bar'}
+      const service     = new gooey.service({name: 'foo'})
+      const scription   = service.subscribe('$.find')
+      const matches     = service.matches(activeData, scription)
+
+      Array.from(matches).should.eql([
+        {pattern: '$.find', matches: ['bar']}
+      ])
+    })
   })
 
   describe('set', () => {
