@@ -103,7 +103,7 @@ export class Service {
     return update(this.data)
   }
 
-  // // // alias for subscribe
+  // alias for subscribe
   on(path: String = '$', on: Function): Subscription {
     return subscribe(...arguments)
   }
