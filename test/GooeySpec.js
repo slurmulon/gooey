@@ -66,7 +66,7 @@ describe('Services', () => {
         const testData2 = {inny: true}
         const testData3 = {leaf: true}
         const evilData  = {evil: true}
-        let   results   = []
+        const results   = []
 
         const resultPusher = (data) => { results.push(data) }
 
@@ -118,9 +118,9 @@ describe('Services', () => {
       it('should not modify data and return it in the original state if no subscriptions match', () => {
         const parentService = new gooey.Service('parent')
         const childService  = new gooey.service({name: 'child', parent: parentService})
-        let testData = {avoid: true, foundBy: []}
+        const testData = {avoid: true, foundBy: []}
 
-        childService.subscribe('$.nothing', (data) => {
+        childService.subscribe('$.nothing', data => {
           data.foundBy.push('childService1')
           return data
         })
@@ -161,12 +161,12 @@ describe('Services', () => {
       const testData = {foo: 'bar'}
       const service  = new gooey.Service('parent')
 
-      const scrip    = service.subscribe('$.foo', data => {
+      const scrip = service.on('$.foo', data => {
         data.matched = true
         return data
       })
 
-      const update = service.update(testData).then(data => {
+      const update = service.use(testData).then(data => {
         data.updated = true
         return data
       })
@@ -179,7 +179,7 @@ describe('Services', () => {
     it('should only perform jsonpath matching if the configuration permits (false)', () => {
       const service     = new gooey.service({name: 'foo', config: {data: {matching: {queries: false} }}})
       const passiveData = {ignore: true}
-      let   results     = []
+      const results     = []
 
       service.subscribe('$.ignore', (data) => { results.push(data) })
       service.broadcast(passiveData)
@@ -190,7 +190,7 @@ describe('Services', () => {
     it('should only perform jsonpath matching if the configuration permits (true)', () => {
       const service    = new gooey.service({name: 'foo', config: {data: {matching: {queries: true} }}})
       const activeData = {find: true}
-      let   results    = []
+      const results    = []
 
       service.subscribe('$.find', (data) => { results.push(data) })
       service.broadcast(activeData)
@@ -204,9 +204,7 @@ describe('Services', () => {
       const scription  = service.subscribe('$.find')
       const matches    = service.matches(activeData, scription)
 
-      Array.from(matches).should.eql([
-        {path: '$.find', matches: ['bar']}
-      ])
+      Array.from(matches).should.eql(['bar'])
     })
   })
 

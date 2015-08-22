@@ -22,32 +22,41 @@ const _config = {
 const directions = ['up', 'down']
 
 // a canonical, heiarchical source of data that can delegate updates bi-directionally
+// TODO support implicit conversion by name (so that Services can be more easily injected into components)
 export class Service {
 
   constructor(name: String, factory?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
+  // TODO - USE constructor(name: String, parent?: Service, children?: Array = [], factory?: Function, config?: Object = _config) {
     if (name === undefined || isRegistered(name)) {
       throw `Services must have unique names: ${name}`
     }
 
     this.name          = name
     this.factory       = factory
-    this.parent        = parent ? parent.relateTo(this) : null
+    this.parent        = parent ?  parent.relateTo(this) : null
     this.children      = this.relateToAll(children)
-    this.data          = {}
+    this.data          = {} // TODO - make this a Proxy object, integrating with broadcast
     this.subscriptions = []
     this.config        = config
     this.isRoot        = !this.parent
 
     _services.add({name, service: this})
+
+    // init()
   }
 
-  // TODO - clone data so that it is immutable
+  init() {
+    if (this.model) {
+      this.model(this.model)
+    }
+  }
+
   broadcast(data, success: Function = _.noop, error: Function = _.noop, direction: String = 'down'): Promise {
     // subscribers who match the current broadcast
     const matches = this.subscriptions.filter(scrip => { return !!this.matches(data, scrip).size })
 
     // current service node. proxy data if this service's data update matches any subscriptions
-    const result  = matches.length ? matches.map(scrip => { return scrip.on(data) }) : data
+    const result = matches.length ? matches.map(scrip => { return scrip.on(data) }) : data
 
     // direction: down
     // "parallel" breadth, synchronized depth
@@ -85,6 +94,30 @@ export class Service {
     return this.broadcast(data, success, error)
   }
 
+  // merges and updates the Service's canonical date source with a new data object and broadcasts the change
+  upsert(data: Object, success?: Function, error?: Function): Promise {
+    if (_.isObject(data)) {
+      _.merge(this.data, data)
+    }
+
+    return update(this.data)
+  }
+
+  // // // alias for subscribe
+  on(path: String = '$', on: Function): Subscription {
+    return subscribe(...arguments)
+  }
+
+  // alias for update
+  use(data, success?: Function, error?: Function): Promise {
+    return update(...arguments)
+  }
+
+  // alias for upsert
+  up(data: Object, success?: Function, error?: Function): Promise {
+    return upsert(...arguments)
+  }
+
   // determines if a subscription path matches data
   matches(data, scrip: Subscription): Set {
     const matchSet = new Set()
@@ -93,12 +126,12 @@ export class Service {
       const jpMatches = jsonPath.query(data, scrip.path)
 
       if (jpMatches && !!jpMatches.length) {
-        matchSet.add({path: scrip.path, matches: jpMatches})
+        matchSet.add(...jpMatches)
       }
     }
 
     if (data === scrip.pattern && !matchSet.contains(data)) {
-      matchSet.add({path: scrip.path, matches: [data]})
+      matchSet.add(data)
     }
 
     return matchSet
@@ -114,7 +147,18 @@ export class Service {
 
   // establishes Service as a parent to each provided child Service
   relateToAll(children: Array): Array {
-    return children.map(c => { c.parent = this; return c })
+    return children.map(c => {
+      c.parent = this
+
+      return c
+    })
+  }
+
+  // tags data with an instance based signature of the Service
+  sign(data) {
+    const instHash = Math.random().toString(36).substring(7)
+
+    return data._gooey_signature = `[gooey:Service:{$instHash}]`
   }
 
 }
@@ -128,7 +172,7 @@ export function services(): Set {
 }
 
 export function isRegistered(name): Boolean {
-  return _.contains(Array.from(_services).map((s) => {return s.name}), name)
+  return _.contains(Array.from(_services).map((s) => { return s.name }), name)
 }
 
 export class Subscription {
@@ -160,7 +204,3 @@ export class Subscription {
 export function clear() {
   _services = new Set()
 }
-
-// Modules
-
-export class Module { }
