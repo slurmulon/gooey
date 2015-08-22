@@ -26,7 +26,6 @@ const directions = ['up', 'down']
 export class Service {
 
   constructor(name: String, factory?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
-  // TODO - USE constructor(name: String, parent?: Service, children?: Array = [], factory?: Function, config?: Object = _config) {
     if (name === undefined || isRegistered(name)) {
       throw `Services must have unique names: ${name}`
     }
@@ -196,10 +195,6 @@ export class Subscription {
 
 // broadcast a data change across all services (searches for roots, leafs, and orphans)
 // export function broadcast(path: String, data)
-
-// export function component({name: String, factory: Function, apiUrl: String, templateUrl: String}) {
-//   // create a RestService with a child ModelService with a child DomService
-// }
 
 export function clear() {
   _services = new Set()
