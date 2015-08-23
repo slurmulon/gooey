@@ -8,6 +8,18 @@ describe('Services', () => {
   beforeEach(gooey.clear)
 
   describe('constructor', () => {
+    it('should be a defined method', () => {
+      gooey.Service.constructor.should.type('function').be.true
+    })
+
+    it('should invoke the factory method with a reference to the data', () => {
+      const service = new gooey.Service('foo', (data) => {
+        data.touched = true
+      })
+
+      service.data.should.eql({touched: true})
+    })
+
     it('should not allow services to be defined without a name', () => {
       (() => {
         gooey.service()
@@ -16,9 +28,10 @@ describe('Services', () => {
 
     it('should add valid services to the global service pool', () => {
       const service  = new gooey.Service('foo')
-      const services = Array.from(gooey.services())
+      const services = gooey.services()
+      const exists   = 'foo' in services
 
-      services.map(s => s.name).should.containEql(service.name)
+      exists.should.be.true
     })
 
     it('should establish itself as a parent to all child services', () => {
@@ -54,6 +67,12 @@ describe('Services', () => {
   })
 
   describe('broadcast', () => {
+    it('should be a defined method', () => {
+      const service = new gooey.Service('foo')
+
+      service.broadcast.should.type('function').be.true
+    })
+
     describe('when direction is `down`', () => {
       it('should recursively traverse child services (depth: syncronous, breadth: asynchronous)', () => {
         const childServiceA = new gooey.Service('childA')
@@ -129,18 +148,10 @@ describe('Services', () => {
 
         testData.foundBy.should.be.empty
       })
-
-      it('should syncronize the execution of identical broadcast events (independent of direction)', () => {
-
-      })
     })
 
     describe('when direction is `up`', () => {
       it('should traverse the parent service (synchronous)', () => {
-
-      })
-
-      it('should syncronize the execution of identical broadcast events (independent of direction)', () => {
 
       })
     })
@@ -208,8 +219,95 @@ describe('Services', () => {
     })
   })
 
-  describe('set', () => {
+  describe('update', () => {
     
+  })
+
+  describe('upsert', () => {
+
+  })
+
+  describe('upsert', () => {
+  })
+
+  describe('function aliases', () => {
+    describe('on', () => {
+
+    })
+
+    describe('use', () => {
+
+    })
+
+    describe('up', () => {
+
+    })
+  })
+
+  describe('relateTo', () => {
+
+  })
+
+  describe('relateToAll', () => {
+
+  })
+
+  describe('isRoot', () => {
+    const root = new gooey.Service('root')
+
+    should.equal(root.parent, null)
+    root.isRoot().should.be.true
+
+    const child = new gooey.service({name: 'child', parent: root})
+
+    child.isRoot().should.be.false
+  })
+
+  describe('isLeaf', () => {
+    it('should return true for orphan nodes', () => {
+       new gooey.Service('orphan').isLeaf().should.be.true
+    })
+
+    it('should return false any parent node', () => {
+      const parent = new gooey.Service('parent')
+      const child  = new gooey.Service('child')
+
+      parent.isLeaf().should.be.false
+      child.isLeaf().should.be.true
+    })
+
+    it('should return true for any leaf node', () => {
+      const root  = new gooey.Service('root')
+      const mid   = new gooey.service({name: 'mid',   parent: root})
+      const leaf1 = new gooey.service({name: 'leaf1', parent: mid})
+      const leaf2 = new gooey.service({name: 'leaf2', parent: mid})
+
+      root.isLeaf().should.be.false
+      mid.isLeaf().should.be.false
+      leaf1.isLeaf().should.be.true
+      leaf2.isLeaf().should.be.true
+    })
+
+  })
+
+  describe('depth', () => {
+    it('should be a defined method', () => {
+      const service = new gooey.Service('foo')
+
+      service.depth.should.type('function').be.true
+    })
+
+    it('should return the Service\'s depth in the tree heirarchy', () => {
+      const parent = new gooey.Service('parent')
+      const child1 = new gooey.service({name: 'child',  parent: parent})
+      const child2 = new gooey.service({name: 'child2', parent: parent})
+      const childSub1 = new gooey.service({name: 'childSub1', parent: child1})
+
+      parent.depth().should.equal(0)
+      child1.depth().should.equal(1)
+      child2.depth().should.equal(1)
+      childSub1.depth().should.equal(2)
+    })
   })
 
 })
