@@ -34,6 +34,7 @@
     "lodash": "~3.10.0"
   },
   "dependencies": {
+    "harmony-reflect": "^1.4.0",
     "jsonpath": "~0.1.8"
   }
 }

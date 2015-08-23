@@ -29,9 +29,8 @@ describe('Services', () => {
     it('should add valid services to the global service pool', () => {
       const service  = new gooey.Service('foo')
       const services = gooey.services()
-      const exists   = 'foo' in services
 
-      exists.should.be.true
+      services.hasOwnProperty('foo').should.be.true
     })
 
     it('should establish itself as a parent to all child services', () => {
@@ -157,17 +156,29 @@ describe('Services', () => {
     })
   })
 
-  describe('subscribe', () => {
-    it('should create a subscription and return it', () => {
+  // describe('subscribe', () => {
+  //   it('should create a subscription and return it', () => {
+  //     // new Subscription(this.name, path, on)
+  //     const service  = new gooey.Service('foo')
+  //     const expScrip = new gooey.Subscription(service.name, '$')
+  //   })
 
+  //   it('should register the subscription with the Service upon creation', () => {
+
+  //   })
+  // })
+
+  // describe('unsubscribe', () => {
+
+  // })
+
+  describe('update', () => {
+    it('should be a defined method', () => {
+      const service = new gooey.Service('foo')
+
+      service.update.should.type('function').be.true
     })
 
-    it('should register the subscription with the Service upon creation', () => {
-
-    })
-  })
-
-  xdescribe('update', () => {
     it('should update the Service\'s canonical source of data and broadcast the change', () => {
       const testData = {foo: 'bar'}
       const service  = new gooey.Service('parent')
@@ -177,16 +188,26 @@ describe('Services', () => {
         return data
       })
 
-      const update = service.use(testData).then(data => {
+      const update = service.use(testData, data => {
         data.updated = true
         return data
+      }).then((d) => {
+        testData.should.eql({foo: 'bar', matched: true, updated: true})
       })
-
-      testData.should.eql({foo: 'bar', matched: true, updated: true})
     })
   })
 
+  describe('upsert', () => {
+
+  })
+
   describe('matches', () => {
+    it('should be a defined method', () => {
+      const service = new gooey.Service('foo')
+
+      service.matches.should.type('function').be.true
+    })
+
     it('should only perform jsonpath matching if the configuration permits (false)', () => {
       const service     = new gooey.service({name: 'foo', config: {data: {matching: {queries: false} }}})
       const passiveData = {ignore: true}
@@ -219,17 +240,6 @@ describe('Services', () => {
     })
   })
 
-  describe('update', () => {
-    
-  })
-
-  describe('upsert', () => {
-
-  })
-
-  describe('upsert', () => {
-  })
-
   describe('function aliases', () => {
     describe('on', () => {
 
@@ -253,17 +263,31 @@ describe('Services', () => {
   })
 
   describe('isRoot', () => {
-    const root = new gooey.Service('root')
+    it('should be a defined method', () => {
+      const service = new gooey.Service('foo')
 
-    should.equal(root.parent, null)
-    root.isRoot().should.be.true
+      service.isRoot.should.type('function').be.true
+    })
 
-    const child = new gooey.service({name: 'child', parent: root})
+    it('should determine if service is a root in the tree', () => {
+      const root = new gooey.Service('root')
 
-    child.isRoot().should.be.false
+      should.equal(root.parent, null)
+      root.isRoot().should.be.true
+
+      const child = new gooey.service({name: 'child', parent: root})
+
+      child.isRoot().should.be.false
+    })
   })
 
   describe('isLeaf', () => {
+    it('should be a defined method', () => {
+      const service = new gooey.Service('foo')
+
+      service.isLeaf.should.type('function').be.true
+    })
+
     it('should return true for orphan nodes', () => {
        new gooey.Service('orphan').isLeaf().should.be.true
     })

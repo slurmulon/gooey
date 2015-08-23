@@ -8,14 +8,11 @@
 var gooey = require('gooey')
 
 var foo = gooey
-  .service('cool', function(scope) { // valid args: scope, http, dom
+  .service('foo', function(model) { // valid args: model, http, dom
     // .. generate some sorrt of data
-    scope.data = [1, 5, 20]
+    model.data = [1, 5, 20]
 
-    return scope
-  })
-  .error(function(e) {
-  // ...
+    return model
   })
 
 // Basic usage
@@ -24,30 +21,74 @@ foo.subscribe('*', v => {
   console.log('responding to all changes')
 })
 
-foo.subscribe(scope => { return scope.data.find(v => v === 10) }, v => {
+foo.subscribe(model => { return model.data.find(v => v === 10) }, v => {
   console.log('responding to a 10 being added to data')
 })
 
-foo.data().push(10) // this would trigger both basic subscriptions to trigger
+foo.data().push(10) // this would trigger both basic subscriptions to trigger (proxy object)
 
 // Advanced usage (layers)
 
-foo.subscribe('dom[*]', data => {
+foo.on('dom[*]', data => {
   console.log('responding to changes to the view layer')
 
-  data.styles = 'color: #ff0000;'
+  data.loading = true
 
   return data
 })
 
 // Advanced Usage (queries)
 
-foo.subscribe('$.id', id => {
+foo.on('$.id', id => {
   console.log('responding to changes to any objects with an id on the top level')
 })
 
-foo.subscribe('$.name', name => {
+foo.on('$.name', name => {
   console.log('responding to changes to any objects with name on the top level, modifying it before the change is carried through to the next layer based on the direction')
 
   return capitalize(name)
 })
+
+// Gooey views
+
+gooey.service('User')
+
+gooey.component({
+  name  : 'BanHammer',
+  view  : '<div class="btn btn-primary">Ban Chump</div>',
+  model : (model, elem) => {
+    User.on('$.banned', (banned) => {
+      model.banned = banned
+
+      if (banned) {
+        alert('You just got banned!', user)
+      }
+    })
+
+    model.banUser = (id) => {
+      User.byId(id).upsert({banned: true})
+    }
+  }
+  
+})
+
+gooey.component({
+  name  : 'BanAlert',
+  view  : '<div class="alert growl">You\'ve been bannnnnnned</div>',
+  model : (model, elem) => {
+    User.on('$.banned', (banned) => {
+      model.banned = banned
+
+      if (banned) {
+        alert('You just got banned!', user)
+
+        _.defer(() => {
+          elem.$destroy({fade: true})
+        }, 5000)
+      }
+    })
+  }
+  
+})
+
+// <ban-hammer go-click="banUser(value.id)"></banned-alert>

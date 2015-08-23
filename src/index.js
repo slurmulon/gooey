@@ -7,9 +7,12 @@ var _services = {}
 
 const _config = {
   data: {
+    lazy: false,
+
     matching: {
       queries : true
     },
+
     broadcast: {
       ignore: {
         falsy: true
@@ -39,10 +42,6 @@ export class Service {
 
     _services[name] = this
 
-    this.init()
-  }
-
-  init() {
     if (this.factory) {
       this.factory(this.data)
     }
@@ -76,8 +75,8 @@ export class Service {
   }
 
   // creates and registers a broadcast subscription against a jsonpath pattern
-  subscribe(path: String = '$', on: Function): Subscription {
-    const scrip = new Subscription(this.name, path, on)
+  subscribe(path: String = '$', matcher: Function, on: Function): Subscription {
+    const scrip = new Subscription(this.name, path, matcher, on)
 
     this.subscriptions.push(scrip)
 
@@ -102,17 +101,17 @@ export class Service {
       _.merge(this.data, data)
     }
 
-    return update(this.data)
+    return this.update(this.data, success, error)
   }
 
   // alias for subscribe
   on(path: String, on: Function): Subscription {
-    return subscribe(path, on)
+    return this.subscribe(path, on)
   }
 
   // alias for update
   use(data, success?: Function, error?: Function): Promise {
-    return update(data, success, error)
+    return this.update(data, success, error)
   }
 
   // alias for upsert
@@ -156,16 +155,6 @@ export class Service {
     })
   }
 
-  // determines if the service is a root node in the service tree
-  isRoot() {
-    return !this.parent
-  }
-
-  // determiens if the service is a leaf node in the service tree
-  isLeaf() {
-    return !this.children
-  }
-
   // determines a service's depth in the service tree
   depth(node = this) {
     let nodeDepth = 0
@@ -178,27 +167,16 @@ export class Service {
     return nodeDepth
   }
 
-  // tags data with an instance based signature of the Service
-  sign(data) {
-    const instHash = Math.random().toString(36).substring(7)
-
-    return data._gooey.signature = `[gooey:Service:{$instHash}]`
+  // determines if the service is a root node in the service tree
+  isRoot() {
+    return !this.parent
   }
 
-  // searches service map with the provided name and injects it
-  static inject(service): Service {
-    if (_.isObject(service)) {
-      return service
-    }
-
-    if (_.isString(name) && Service.isRegistered(name)) {
-      return _services.find(s => s.name === name)
-    }
-    
-    throw `Service ${name} is not registered`
+  // determiens if the service is a leaf node in the service tree
+  isLeaf() {
+    return !this.children
   }
 
-  // determines if a service is registered in the tree
   static isRegistered(name: String): Boolean {
     return _.contains(Array.from(_services).map((s) => { return s.name }), name)
   }
@@ -209,21 +187,51 @@ export class Service {
   }
 
   static findLeafs(): Set {
-    let leafs = []
-
-    //
+    return _services.find(s => s.isLeaf())
   }
 
   // determines if a cyclic relationship exists anywhere in the service tree
-  static isCyclic(): Boolean {
-    // is it bretter to
-    // - set and look for a _tracked property
-    // - use tail recursion to see if the service has already been visited
-    // const trackedNode = _.extend({tracked: true}, this)
+  static cycleExists(): Boolean {
+    const roots = Service.findRoots()
+    const found = roots.map(r => r.name)
 
-    // find root
-    // depth-first search
+    let curNode = null
+    let cyclic  = false
+
+    roots.forEach(root => {
+      curNode = root
+
+      while (!cyclic && curNode.children) {
+        curNode.children.forEach(child => {
+          if (!_.contains(found, child.name)) {
+            found.add(child.name)
+
+            curNode = child.children
+          } else {
+            cyclic = true
+          }
+        })
+      }
+    })
+
+    return cyclic
   }
+}
+
+export function inject(service, passive = false): Service {
+  if (service instanceof Service || (!service && passive)) {
+    return service
+  }
+
+  if (_.isString(service) && Service.isRegistered(service)) {
+    return _services.find(s => s.service === service)
+  }
+  
+  throw `Injection failed, service ${service} is not registered`
+}
+
+export function injectAll(services, passive): Service {
+  return services.map(s => Injector.inject(s, passive))
 }
 
 export function service({name, factory, parent, children, config}): Service {
