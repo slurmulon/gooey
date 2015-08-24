@@ -51,6 +51,11 @@ foo.on('$.name', name => {
 
 // Gooey views
 
+// * Note that service "injection"
+
+import gooey from gooey
+import User from app.models
+
 gooey.service('User')
 
 gooey.component({

@@ -12,18 +12,16 @@ describe('Services', () => {
       gooey.Service.constructor.should.type('function').be.true
     })
 
+    it('should not allow services to be defined without a name', () => {
+      gooey.service.should.throw()
+    })
+
     it('should invoke the factory method with a reference to the data', () => {
       const service = new gooey.Service('foo', (data) => {
         data.touched = true
       })
 
       service.data.should.eql({touched: true})
-    })
-
-    it('should not allow services to be defined without a name', () => {
-      (() => {
-        gooey.service()
-      }).should.throw()
     })
 
     it('should add valid services to the global service pool', () => {
@@ -47,6 +45,13 @@ describe('Services', () => {
       const childService  = new gooey.service({name: 'child', parent: parentService})
 
       parentService.children.should.containEql(childService)
+    })
+
+    // TODO
+    xit('should prevent services with cyclic relationships from being established (in strict mode)', () => {
+      const serviceA = new gooey.Service('A')
+      const serviceB = new gooey.service({name: 'B', parent: serviceA})
+      const serviceC = new gooey.service({name: 'C', parent: serviceB, children: [serviceA]}).should.throw()
     })
 
     it('should prevent services with the same name from co-existing', () => {
@@ -140,6 +145,7 @@ describe('Services', () => {
 
         childService.subscribe('$.nothing', data => {
           data.foundBy.push('childService1')
+
           return data
         })
 
@@ -255,11 +261,23 @@ describe('Services', () => {
   })
 
   describe('relateTo', () => {
+    it('should be a defined method', () => {
+      const service = new gooey.Service('foo')
 
+      service.relateTo.should.type('function').be.true
+    })
+
+    it('should prevent services with cyclic relationships from being established', () => {
+
+    })
   })
 
   describe('relateToAll', () => {
+    it('should be a defined method', () => {
+      const service = new gooey.Service('foo')
 
+      service.relateToAll.should.type('function').be.true
+    })
   })
 
   describe('isRoot', () => {
@@ -314,6 +332,14 @@ describe('Services', () => {
 
   })
 
+  describe('findRoots', () => {
+
+  })
+
+  describe('findLeafs', () => {
+
+  })
+
   describe('depth', () => {
     it('should be a defined method', () => {
       const service = new gooey.Service('foo')
@@ -331,6 +357,28 @@ describe('Services', () => {
       child1.depth().should.equal(1)
       child2.depth().should.equal(1)
       childSub1.depth().should.equal(2)
+    })
+  })
+
+  describe('cycleExists', () => {
+    it('should be a defined method', () => {
+      gooey.Service.cycleExists.should.type('function').be.true
+    })
+
+    it('should return true if there are any cycles in the tree (non-strict mode)', () => {
+      const serviceA = new gooey.service({name: 'A', config: {strict: false}})
+      const serviceB = new gooey.service({name: 'B', parent: serviceA})
+      const serviceC = new gooey.service({name: 'C', parent: serviceB, children: [serviceA]})
+
+      new gooey.Service.cycleExists().should.be.true
+    })
+
+    it('should reurn false if the tree is acyclic', () => {
+      const serviceA = new gooey.Service('A')
+      const serviceB = new gooey.service({name: 'B', parent: serviceA})
+      const serviceC = new gooey.service({name: 'C', parent: serviceA})
+
+      new gooey.Service.cycleExists().should.be.false
     })
   })
 

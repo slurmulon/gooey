@@ -5,7 +5,9 @@ const jsonPath = require('jsonpath'),
 
 var _services = {}
 
+// default configuration
 const _config = {
+  strict: true,
   data: {
     lazy: false,
 
@@ -21,10 +23,10 @@ const _config = {
   }
 }
 
+// supported types of tree traversals
 const traversals = ['depth_down', 'depth_up', 'breadth_down', 'breadth_up']
 
 // a canonical, heiarchical source of data that can delegate updates bi-directionally
-// TODO support implicit conversion by name (so that Services can be more easily injected into components)
 export class Service {
 
   constructor(name: String, factory?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
@@ -48,7 +50,7 @@ export class Service {
   }
 
   // TODO - allow broadcasts to be interrupted by any subscriber
-  broadcast(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'depth_down'): Promise {
+  broadcast(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'breadth_down'): Promise {
     if (!traversals.find(t => t === traversal)) {
       throw `Failed to broadcast, invalid traversal: ${traversal}`
     }
@@ -59,8 +61,7 @@ export class Service {
     // current service node. proxy data if this service's data update matches any subscriptions
     const result = matches.length ? matches.map(scrip => { scrip.on(data) }) : data
 
-    // direction: down
-    // "parallel" breadth, synchronized depth
+    // breadth first, down 
     if (this.children.length) {
       return Promise
         .all(this.children.map(child => {
@@ -75,8 +76,8 @@ export class Service {
   }
 
   // creates and registers a broadcast subscription against a jsonpath pattern
-  subscribe(path: String = '$', matcher: Function, on: Function): Subscription {
-    const scrip = new Subscription(this.name, path, matcher, on)
+  subscribe(path: String = '$', on: Function): Subscription {
+    const scrip = new Subscription(this.name, path, on)
 
     this.subscriptions.push(scrip)
 
@@ -177,36 +178,42 @@ export class Service {
     return !this.children
   }
 
+  // returns all root node Services in the tree
+  static findRoots(services: Array = _services): Array {
+    return _(services).values().filter(svc => {
+      return (svc instanceof Service) ? svc.isRoot() : false
+    }).value()
+  }
+
+  // returns all leaf node Services in the tree
+  static findLeafs(services: Array = _services): Array {
+    return _(services).values().filter(svc => {
+      return (svc instanceof Service) ? svc.isLeaf() : false
+    }).value()
+  }
+
+  // determines if a service name is already registered in the tree
   static isRegistered(name: String): Boolean {
     return _.contains(Array.from(_services).map((s) => { return s.name }), name)
   }
 
-  // returns all root node Services in the tree
-  static findRoots(): Set {
-    return _services.find(s => s.isRoot())
-  }
-
-  static findLeafs(): Set {
-    return _services.find(s => s.isLeaf())
-  }
-
   // determines if a cyclic relationship exists anywhere in the service tree
-  static cycleExists(): Boolean {
-    const roots = Service.findRoots()
-    const found = roots.map(r => r.name)
+  static cycleExists(services = _services): Boolean {
+    const roots = Service.findRoots(services)
+    const found = !_.isEmpty(roots) ? roots.map(r => r.name) : []
 
     let curNode = null
     let cyclic  = false
 
-    roots.forEach(root => {
+    _.forEach(roots, (root) => {
       curNode = root
 
-      while (!cyclic && curNode.children) {
+      while (!cyclic && !_.isEmpty(curNode.children)) {
         curNode.children.forEach(child => {
           if (!_.contains(found, child.name)) {
-            found.add(child.name)
+            found.push(child.name)
 
-            curNode = child.children
+            curNode = child
           } else {
             cyclic = true
           }
@@ -216,22 +223,6 @@ export class Service {
 
     return cyclic
   }
-}
-
-export function inject(service, passive = false): Service {
-  if (service instanceof Service || (!service && passive)) {
-    return service
-  }
-
-  if (_.isString(service) && Service.isRegistered(service)) {
-    return _services.find(s => s.service === service)
-  }
-  
-  throw `Injection failed, service ${service} is not registered`
-}
-
-export function injectAll(services, passive): Service {
-  return services.map(s => Injector.inject(s, passive))
 }
 
 export function service({name, factory, parent, children, config}): Service {
