@@ -54,15 +54,21 @@ foo.on('$.name', name => {
 // * Note that service "injection"
 
 import gooey from gooey
-import User from app.models
+// import user from app.models.run
 
-gooey.service('User')
+var User = new gooey.service({
+  name: 'user',
+  model: (model) => {
+    
+  }
+})
 
+// <ban-hammer>
 gooey.component({
   name  : 'BanHammer',
   view  : '<div class="btn btn-primary">Ban Chump</div>',
   model : (model, elem) => {
-    User.on('$.banned', (banned) => {
+    User.current().on('$.banned', (banned) => {
       model.banned = banned
 
       if (banned) {
@@ -77,11 +83,12 @@ gooey.component({
   
 })
 
+// <ban-alert>
 gooey.component({
   name  : 'BanAlert',
   view  : '<div class="alert growl">You\'ve been bannnnnnned</div>',
   model : (model, elem) => {
-    User.on('$.banned', (banned) => {
+    User.current().on('$.banned', (banned) => {
       model.banned = banned
 
       if (banned) {

@@ -29,13 +29,13 @@ const traversals = ['depth_down', 'depth_up', 'breadth_down', 'breadth_up']
 // a canonical, heiarchical source of data that can delegate updates bi-directionally
 export class Service {
 
-  constructor(name: String, factory?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
+  constructor(name: String, model?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
     if (_.isUndefined(name) || Service.isRegistered(name)) {
       throw `Services must have unique names: ${name}`
     }
 
     this.name          = name
-    this.factory       = factory
+    this.model         = model
     this.parent        = parent ? parent.relateTo(this) : null
     this.children      = this.relateToAll(children)
     this.data          = {} // TODO - make this a Proxy object, integrating with broadcast
@@ -44,8 +44,8 @@ export class Service {
 
     _services[name] = this
 
-    if (this.factory) {
-      this.factory(this.data)
+    if (this.model) {
+      this.model(this.data)
     }
   }
 
@@ -225,8 +225,8 @@ export class Service {
   }
 }
 
-export function service({name, factory, parent, children, config}): Service {
-  return new Service(name, factory, parent, children, config)
+export function service({name, model, parent, children, config}): Service {
+  return new Service(name, model, parent, children, config)
 }
 
 export function services(): Object {

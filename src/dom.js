@@ -2,7 +2,6 @@ import * as gooey from 'index.js'
 
 import * as _ from 'lodash'
 
-// FIXME - extend native dom class
 // or http://www.ericponto.com/blog/2014/10/05/es6-dom-library/
 // kinda cool but hacky http://lea.verou.me/2015/04/idea-extending-native-dom-prototypes-without-collisions/
 // http://h3manth.com/new/blog/2015/custom-elements-with-es6/

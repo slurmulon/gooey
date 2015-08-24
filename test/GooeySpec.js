@@ -77,6 +77,13 @@ describe('Services', () => {
       service.broadcast.should.type('function').be.true
     })
 
+    it('should error if an invalid traversal pattern is provided', () => {
+      const service   = new gooey.Service('foo')
+      const broadcast = (() => {
+        service.broadcast('bar', null, null, 'crazy')
+      }).should.throw()
+    })
+
     describe('when direction is `down`', () => {
       it('should recursively traverse child services (depth: syncronous, breadth: asynchronous)', () => {
         const childServiceA = new gooey.Service('childA')
@@ -268,6 +275,10 @@ describe('Services', () => {
     })
 
     it('should prevent services with cyclic relationships from being established', () => {
+      // TODO
+    })
+
+    it('should relate the provided service as a child if the relationship is acyclic', () => {
 
     })
   })
@@ -278,6 +289,9 @@ describe('Services', () => {
 
       service.relateToAll.should.type('function').be.true
     })
+
+    // TODO
+    it('should relate each provided service as a child')
   })
 
   describe('isRoot', () => {
