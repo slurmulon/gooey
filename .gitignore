@@ -1,4 +1,6 @@
 dist/
 node_modules/
 bower_components/
+coverage/
+coverage.html
 npm-debug.log

@@ -1,5 +1,3 @@
-require('blanket')
-
 import * as gooey from '../dist/index'
 import should from 'should'
 
@@ -162,7 +160,7 @@ describe('Services', () => {
       })
     })
 
-    describe('when direction is `up`', () => {
+    xdescribe('when direction is `up`', () => {
       it('should traverse the parent service (synchronous)', () => {
 
       })
@@ -210,7 +208,7 @@ describe('Services', () => {
     })
   })
 
-  describe('upsert', () => {
+  xdescribe('upsert', () => {
 
   })
 
@@ -253,7 +251,7 @@ describe('Services', () => {
     })
   })
 
-  describe('function aliases', () => {
+  xdescribe('function aliases', () => {
     describe('on', () => {
 
     })
@@ -324,7 +322,7 @@ describe('Services', () => {
        new gooey.Service('orphan').isLeaf().should.be.true
     })
 
-    it('should return false any parent node', () => {
+    it('should return false for any parent node', () => {
       const parent = new gooey.Service('parent')
       const child  = new gooey.Service('child')
 
@@ -347,11 +345,17 @@ describe('Services', () => {
   })
 
   describe('findRoots', () => {
-
+    it('should be a defined method', () => {
+      gooey.Service.findRoots.should.type('function').be.true
+    })
   })
 
   describe('findLeafs', () => {
+    it('should be a defined method', () => {
+      gooey.Service.findLeafs.should.type('function').be.true
+    })
 
+    // TODO
   })
 
   describe('depth', () => {
