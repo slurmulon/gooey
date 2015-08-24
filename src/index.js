@@ -59,14 +59,14 @@ export class Service {
     const matches = this.subscriptions.filter(scrip => { return !!this.matches(data, scrip).size })
 
     // current service node. proxy data if this service's data update matches any subscriptions
-    const result = matches.length ? matches.map(scrip => { scrip.on(data) }) : data
+    const result = matches.length ? matches.map(scrip => scrip.on(data)) : data
 
     // breadth first, down 
     if (this.children.length) {
       return Promise
-        .all(this.children.map(child => {
-          return child.broadcast(result, success, error, traversal)
-        }))
+        .all(this.children.map(child => 
+          child.broadcast(result, success, error, traversal)
+        ))
     }
 
     // leaf node
@@ -194,7 +194,7 @@ export class Service {
 
   // determines if a service name is already registered in the tree
   static isRegistered(name: String): Boolean {
-    return _.contains(Array.from(_services).map((s) => { return s.name }), name)
+    return _.contains(Array.from(_services).map(s => s.name), name)
   }
 
   // determines if a cyclic relationship exists anywhere in the service tree
