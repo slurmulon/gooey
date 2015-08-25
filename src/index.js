@@ -44,9 +44,11 @@ export class Service {
 
     _services[name] = this
 
-    if (this.model) {
-      this.model(this.data)
-    }
+    this.init()
+  }
+
+  init() {
+    if (this.model) this.model(this.data)
   }
 
   // TODO - allow broadcasts to be interrupted by any subscriber

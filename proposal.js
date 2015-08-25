@@ -67,8 +67,8 @@ var User = new gooey.service({
 gooey.component({
   name  : 'BanHammer',
   view  : '<div class="btn btn-primary">Ban Chump</div>',
-  model : (model, elem) => {
-    model.banUser = (id) => {
+  controller : (ctrl, elem) => {
+    ctrl.banUser = (id) => {
       User.byId(id).upsert({banned: true})
     }
   }
@@ -79,7 +79,7 @@ gooey.component({
 gooey.component({
   name  : 'BanAlert',
   view  : '<div class="alert growl">You\'ve been bannnnnnned</div>',
-  model : (model, elem) => {
+  controller : (ctrl, elem) => {
     User.current().on('$.banned', (banned) => {
       if (banned) {
         alert('You just got banned!', user)

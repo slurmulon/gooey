@@ -1,32 +1,43 @@
-import * as gooey from 'index.js'
-
+import * as gooey from './index'
 import * as _ from 'lodash'
 
 // or http://www.ericponto.com/blog/2014/10/05/es6-dom-library/
 // kinda cool but hacky http://lea.verou.me/2015/04/idea-extending-native-dom-prototypes-without-collisions/
 // http://h3manth.com/new/blog/2015/custom-elements-with-es6/
 
-class Component extends HTMLElement, gooey.Service {
+export class DomElem extends gooey.Service {//, HTMLElement {
 
-  constructor(name: String, template: String, model: Function) {
+  constructor(name: String, template: String, controller: Function, on: Object = {}) {
+    super(name, model)
+
     this.name = name
     this.template = template
-    this.model = model
+    this.controller = controller
+    this.on = on
 
     document.registerElement(DomElem.camelToSnake(this.name), DomElem)
   }
 
-  // Fires when an instance of the element is created.
-  createdCallback() {}
+  // instance of the element is created.
+  createdCallback() {
+    // TODO - inject template if exists
+    if (this.template) {
 
-  // Fires when an instance was inserted into the document.
+    }
+  }
+
+  // instance was inserted into the document.
   attachedCallback() {}
 
-  // Fires when an instance was removed from the document.
+  // instance was removed from the document.
   detachedCallback() {}
 
-  // Fires when an attribute was added, removed, or updated.
-  attributeChangedCallback(attr, oldVal, newVal) {}
+  // attribute was added, removed, or updated.
+  attributeChangedCallback(attr, oldVal, newVal) {
+    if((this.on.click || _.noop)(attr, oldVal, newVal)) {
+      this.broadcast(newVal) // meh, improve
+    }
+  }
 
   static snakeToCamel(txt: String) {
     // TODO
@@ -37,6 +48,9 @@ class Component extends HTMLElement, gooey.Service {
     // TODO
     return txt
   }
+
 }
 
-export var component = (name, template, model) => new Component(...arguments)
+export var element = (name, template, model) => new DomElem(...arguments)
+
+// TODO - class Component
