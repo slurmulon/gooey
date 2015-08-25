@@ -59,7 +59,7 @@ import gooey from gooey
 var User = new gooey.service({
   name: 'user',
   model: (model) => {
-    
+
   }
 })
 
@@ -68,14 +68,6 @@ gooey.component({
   name  : 'BanHammer',
   view  : '<div class="btn btn-primary">Ban Chump</div>',
   model : (model, elem) => {
-    User.current().on('$.banned', (banned) => {
-      model.banned = banned
-
-      if (banned) {
-        alert('You just got banned!', user)
-      }
-    })
-
     model.banUser = (id) => {
       User.byId(id).upsert({banned: true})
     }
@@ -89,8 +81,6 @@ gooey.component({
   view  : '<div class="alert growl">You\'ve been bannnnnnned</div>',
   model : (model, elem) => {
     User.current().on('$.banned', (banned) => {
-      model.banned = banned
-
       if (banned) {
         alert('You just got banned!', user)
 

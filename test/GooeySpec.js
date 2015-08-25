@@ -1,7 +1,7 @@
 import * as gooey from '../dist/index'
 import should from 'should'
 
-describe('Services', () => {
+describe('Service', () => {
 
   beforeEach(gooey.clear)
 
@@ -82,7 +82,7 @@ describe('Services', () => {
       }).should.throw()
     })
 
-    describe('when direction is `down`', () => {
+    describe('when traversal is `breadth_first_down`', () => {
       it('should recursively traverse child services (depth: syncronous, breadth: asynchronous)', () => {
         const childServiceA = new gooey.Service('childA')
         const childServiceB = new gooey.Service('childB')
@@ -160,9 +160,9 @@ describe('Services', () => {
       })
     })
 
-    xdescribe('when direction is `up`', () => {
-      it('should traverse the parent service (synchronous)', () => {
-
+    xdescribe('when traversal is `breadth_first_up`', () => {
+      it('should traverse the parent service', () => {
+        // TODO
       })
     })
   })
@@ -208,8 +208,21 @@ describe('Services', () => {
     })
   })
 
-  xdescribe('upsert', () => {
+  describe('upsert', () => {
+    it('should be a defined method', () => {
+      const service = new gooey.Service('foo')
 
+      service.upsert.should.type('function').be.true
+    })
+
+    it('should merge, update and then broadcast the provided data', () => {
+      const service = new gooey.Service('foo')
+
+      service.update({a: 'a'})
+      service.upsert({b: 'b'})
+
+      service.data.should.eql({a: 'a', b: 'b'})
+    })
   })
 
   describe('matches', () => {
@@ -276,8 +289,8 @@ describe('Services', () => {
       // TODO
     })
 
-    it('should relate the provided service as a child if the relationship is acyclic', () => {
-
+    it('should relate the provided service as a child only if the proposed relationship is acyclic', () => {
+      // TODO
     })
   })
 

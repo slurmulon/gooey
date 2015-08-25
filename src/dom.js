@@ -17,16 +17,16 @@ class Component extends HTMLElement, gooey.Service {
   }
 
   // Fires when an instance of the element is created.
-  createdCallback() {};
+  createdCallback() {}
 
   // Fires when an instance was inserted into the document.
-  attachedCallback() {};
+  attachedCallback() {}
 
   // Fires when an instance was removed from the document.
-  detachedCallback() {};
+  detachedCallback() {}
 
   // Fires when an attribute was added, removed, or updated.
-  attributeChangedCallback(attr, oldVal, newVal) {};
+  attributeChangedCallback(attr, oldVal, newVal) {}
 
   static snakeToCamel(txt: String) {
     // TODO

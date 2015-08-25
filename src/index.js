@@ -56,7 +56,7 @@ export class Service {
     }
     
     // subscribers who match the current broadcast
-    const matches = this.subscriptions.filter(scrip => { return !!this.matches(data, scrip).size })
+    const matches = this.subscriptions.filter(scrip => !!this.matches(data, scrip).size)
 
     // current service node. proxy data if this service's data update matches any subscriptions
     const result = matches.length ? matches.map(scrip => scrip.on(data)) : data
@@ -96,6 +96,7 @@ export class Service {
     return this.broadcast(data, success, error)
   }
 
+  // ?? - maybe rename to "patch"
   // merges and updates the Service's canonical date source with a new data object and broadcasts the change
   upsert(data: Object, success?: Function, error?: Function): Promise {
     if (_.isObject(data)) {
@@ -157,7 +158,7 @@ export class Service {
   }
 
   // determines a service's depth in the service tree
-  depth(node = this) {
+  depth(node = this): Int {
     let nodeDepth = 0
 
     while (node.parent) {
@@ -169,27 +170,27 @@ export class Service {
   }
 
   // determines if the service is a root node in the service tree
-  isRoot() {
+  isRoot(): Boolean {
     return !this.parent
   }
 
-  // determiens if the service is a leaf node in the service tree
-  isLeaf() {
+  // determines if the service is a leaf node in the service tree
+  isLeaf(): Boolean {
     return !this.children
   }
 
-  // returns all root node Services in the tree
+  // determines all root node Services in the tree
   static findRoots(services: Array = _services): Array {
-    return _(services).values().filter(svc => {
-      return (svc instanceof Service) ? svc.isRoot() : false
-    }).value()
+    return _(services).values().filter(svc =>
+      (svc instanceof Service) ? svc.isRoot() : false
+    ).value()
   }
 
-  // returns all leaf node Services in the tree
+  // determines all leaf node Services in the tree
   static findLeafs(services: Array = _services): Array {
-    return _(services).values().filter(svc => {
-      return (svc instanceof Service) ? svc.isLeaf() : false
-    }).value()
+    return _(services).values().filter(svc =>
+      (svc instanceof Service) ? svc.isLeaf() : false
+    ).value()
   }
 
   // determines if a service name is already registered in the tree
