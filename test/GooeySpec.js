@@ -45,11 +45,13 @@ describe('Service', () => {
       parentService.children.should.containEql(childService)
     })
 
-    // TODO
+    // FIXME
     xit('should prevent services with cyclic relationships from being established (in strict mode)', () => {
       const serviceA = new gooey.Service('A')
       const serviceB = new gooey.service({name: 'B', parent: serviceA})
-      const serviceC = new gooey.service({name: 'C', parent: serviceB, children: [serviceA]}).should.throw()
+      const serviceC = (() => {
+        new gooey.service({name: 'C', parent: serviceB, children: [serviceA]})
+      }).should.throw()
     })
 
     it('should prevent services with the same name from co-existing', () => {
@@ -167,21 +169,71 @@ describe('Service', () => {
     })
   })
 
-  // describe('subscribe', () => {
-  //   it('should create a subscription and return it', () => {
-  //     // new Subscription(this.name, path, on)
-  //     const service  = new gooey.Service('foo')
-  //     const expScrip = new gooey.Subscription(service.name, '$')
-  //   })
+  describe('subscribe', () => {
+    it('should be a defined method', () => {
+      const service = new gooey.Service('foo')
 
-  //   it('should register the subscription with the Service upon creation', () => {
+      service.subscribe.should.type('function').be.true
+    })
 
-  //   })
-  // })
+    it('should create a subscription and return it', () => {
+      let gotIt     = false
+      const service = new gooey.Service('foo')
+      const scrip   = service.subscribe('$', () => {
+        gotIt = true
+      })
 
-  // describe('unsubscribe', () => {
+      service.update({any: 'thing'})
 
-  // })
+      gotIt.should.be.true
+    })
+
+    it('should register the subscription with the Service upon creation', () => {
+      const service = new gooey.Service('foo')
+      const scrip   = service.subscribe('$', () => {
+        gotIt = true
+      })
+
+      service.subscriptions.should.containEql(scrip)
+    })
+
+    // TODO - it('should prevent identical subscriptions from being registered')
+
+  })
+
+  describe('unsubscribe', () => {
+    it('should be a defined method', () => {
+      const service = new gooey.Service('foo')
+
+      service.unsubscribe.should.type('function').be.true
+    })
+
+    it('should remove the subscription from the service', () => {
+      const service = new gooey.Service('foo')
+      const scrip   = service.subscribe('$', (data) => {
+        delete data.any
+        data.fail = true
+      })
+
+      service.unsubscribe(scrip)
+      service.update({pass: true})
+
+      service.data.should.have.ownProperty('pass')
+      service.data.should.not.have.ownProperty('fail')
+    })
+
+    it('should freeze the object to prevent further mutation', () => {
+      const service = new gooey.Service('foo')
+      const scrip   = service.subscribe('$', (data) => {
+        delete data.any
+        data.fail = true
+      })
+
+      service.unsubscribe(scrip)
+
+      Object.isFrozen(scrip).should.be.true      
+    })
+  })
 
   describe('update', () => {
     it('should be a defined method', () => {
@@ -208,18 +260,18 @@ describe('Service', () => {
     })
   })
 
-  describe('upsert', () => {
+  describe('merge', () => {
     it('should be a defined method', () => {
       const service = new gooey.Service('foo')
 
-      service.upsert.should.type('function').be.true
+      service.merge.should.type('function').be.true
     })
 
     it('should merge, update and then broadcast the provided data', () => {
       const service = new gooey.Service('foo')
 
       service.update({a: 'a'})
-      service.upsert({b: 'b'})
+      service.merge({b: 'b'})
 
       service.data.should.eql({a: 'a', b: 'b'})
     })
@@ -264,17 +316,35 @@ describe('Service', () => {
     })
   })
 
-  xdescribe('function aliases', () => {
+  describe('function aliases', () => {
     describe('on', () => {
+      it('should be a defined method', () => {
+        const service = new gooey.Service('foo')
 
+        service.on.should.type('function').be.true
+      })
+
+      // TODO
     })
 
     describe('use', () => {
+      it('should be a defined method', () => {
+        const service = new gooey.Service('foo')
 
+        service.use.should.type('function').be.true
+      })
+
+      // TODO
     })
 
     describe('up', () => {
+      it('should be a defined method', () => {
+        const service = new gooey.Service('foo')
 
+        service.up.should.type('function').be.true
+      })
+
+      // TODO
     })
   })
 

@@ -49,7 +49,6 @@ export class Service {
     }
   }
 
-  // TODO - allow broadcasts to be interrupted by any subscriber
   broadcast(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'breadth_down'): Promise {
     if (!traversals.find(t => t === traversal)) {
       throw `Failed to broadcast, invalid traversal: ${traversal}`
@@ -96,9 +95,8 @@ export class Service {
     return this.broadcast(data, success, error)
   }
 
-  // ?? - maybe rename to "patch"
   // merges and updates the Service's canonical date source with a new data object and broadcasts the change
-  upsert(data: Object, success?: Function, error?: Function): Promise {
+  merge(data: Object, success?: Function, error?: Function): Promise {
     if (_.isObject(data)) {
       _.merge(this.data, data)
     }
@@ -246,6 +244,7 @@ export class Subscription {
 
   end() {
     service.unsubscribe(this)
+    Object.freeze(this)
   }
 
 }
