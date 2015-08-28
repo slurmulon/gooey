@@ -7,24 +7,24 @@ import * as _ from 'lodash'
 
 export class DomElem extends gooey.Service {//, HTMLElement {
 
-  constructor(name: String, template: String, controller: Function, on: Object = {}) {
+  constructor(name: String, template: String, controller: Function) {
     super(name, model)
 
     this.name = name
     this.template = template
     this.controller = controller
-    this.on = on
+  }
 
-    document.registerElement(DomElem.camelToSnake(this.name), DomElem)
+  default elemProto(): Prototype {
+    return Object.create(HTMLElement.prototype, _.values())
+  }
+
+  validate() {
+    return document.createElement(this.name).__proto__ == HTMLElement.prototype
   }
 
   // instance of the element is created.
-  createdCallback() {
-    // TODO - inject template if exists
-    if (this.template) {
-
-    }
-  }
+  createdCallback() {}
 
   // instance was inserted into the document.
   attachedCallback() {}
@@ -39,14 +39,12 @@ export class DomElem extends gooey.Service {//, HTMLElement {
     }
   }
 
-  static snakeToCamel(txt: String) {
-    // TODO
-    return txt
+  static dashToCamel(txt: String) {
+    return txt.toLowerCase().replace(/-(.)/g, (match, group1) => { group1.toUpperCase() }
   }
 
-  static camelToSnake(txt: String) {
-    // TODO
-    return txt
+  static camelToDash(txt: String) {
+    return txt.toLowerCase().replace(/[A-Z]*/g, (match, group1) => { group1.toLowerCase() + '-' }
   }
 
 }

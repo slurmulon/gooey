@@ -7,9 +7,9 @@ Gooey aims to be a simple full-stack (Restful API, JavaScript, DOM) data-binding
 ## Features
 
 * Hierarchical, bi-directional, acyclic event broadcasting
-* Services as proxies (data can be manipulated before being handed off to next service, great for piplineing)
-* Query subscriptions (in other words, subscribe to changes with JsonPath)
-* Streaming data subscriptions
+* Services as proxies (data can be manipulated before being handed off to next dependents)
+* Query subscriptions (more specifically, subscribe to changes with JsonPath queries)
+* Reactive data subscriptions
 * View templating
 
 ## Goals

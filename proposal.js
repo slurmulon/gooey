@@ -7,29 +7,45 @@
 
 var gooey = require('gooey')
 
-var foo = gooey
-  .service('foo', function(model) { // valid args: model, http, dom
+var user = gooey
+  .Service('User', (model) => { // valid args: model, http, dom
     // .. generate some sorrt of data
-    model.data = [1, 5, 20]
+    model.fullName = () => {
+      return `${model.firstName} {model.lastName}`
+    }
 
     return model
-  })
+  }, Authenticator)
 
+// .. or the more semantic syntax:
+
+var user = gooey.service({
+  name   : 'User',
+  parent : Authenticator,
+  model  : (model) => { // valid args: model, http, dom
+    // .. generate some sorrt of data
+    model.fullName = () => {
+      return `${model.firstName} {model.lastName}`
+    }
+
+    return model
+  }
+})
 // Basic usage
 
-foo.subscribe('*', v => {
+user.subscribe('*', v => {
   console.log('responding to all changes')
 })
 
-foo.subscribe(model => { return model.data.find(v => v === 10) }, v => {
+user.subscribe(model => { return model.data.find(v => v === 10) }, v => {
   console.log('responding to a 10 being added to data')
 })
 
-foo.data().push(10) // this would trigger both basic subscriptions to trigger (proxy object)
+user.data().push(10) // this would trigger both basic subscriptions to trigger (proxy object)
 
 // Advanced usage (layers)
 
-foo.on('dom[*]', data => {
+user.on('dom[*]', data => {
   console.log('responding to changes to the view layer')
 
   data.loading = true
@@ -39,11 +55,11 @@ foo.on('dom[*]', data => {
 
 // Advanced Usage (queries)
 
-foo.on('$.id', id => {
+user.on('$.id', id => {
   console.log('responding to changes to any objects with an id on the top level')
 })
 
-foo.on('$.name', name => {
+user.on('$.name', name => {
   console.log('responding to changes to any objects with name on the top level, modifying it before the change is carried through to the next layer based on the direction')
 
   return capitalize(name)

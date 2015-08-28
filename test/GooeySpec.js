@@ -361,6 +361,8 @@ describe('Service', () => {
     it('should be a defined method', () => {
       gooey.Service.findRoots.should.type('function').be.true
     })
+
+    it('should find all root Service nodes in gl')
   })
 
   describe('findLeafs', () => {
@@ -378,7 +380,7 @@ describe('Service', () => {
       service.depth.should.type('function').be.true
     })
 
-    it('should return the Service\'s depth in the tree heirarchy', () => {
+    it('should return the Service\'s depth in the tree hierarchy', () => {
       const parent = new gooey.Service('parent')
       const child1 = new gooey.service({name: 'child',  parent: parent})
       const child2 = new gooey.service({name: 'child2', parent: parent})
