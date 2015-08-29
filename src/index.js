@@ -9,9 +9,10 @@
 import jsonPath from 'jsonpath'
 import _ from 'lodash'
 
+// flat object of all registered services by name
 var _services = {}
 
-// default configuration
+// default service configuration
 const _config = {
   strict: true,
   data: {
@@ -29,14 +30,10 @@ const _config = {
   }
 }
 
-// supported types of tree traversals
+// supported flavors of service tree traversals
 const traversals = ['depth', 'breadth']
 
 // a canonical, heiarchical source of data that can delegate updates bi-directionally
-// TODO - make `data` a Proxy object and integrate event callbacks with publish.
-//      - if the data is a proxy, concurrent Service subscription handlers will be able to more easily synchronize data mutation events
-//        this is easier on the developer because we can trigger native events when data is mutated, and therefore we can trigger
-//        a recursive publication of that data change. can provide a "weight" heuristic to automatically resolve any remaining conflicts
 export class Service {
 
   constructor(name: String, model?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
