@@ -33,6 +33,10 @@ const _config = {
 const traversals = ['depth', 'breadth']
 
 // a canonical, heiarchical source of data that can delegate updates bi-directionally
+// TODO - make `data` a Proxy object and integrate event callbacks with publish.
+//      - if the data is a proxy, concurrent Service subscription handlers will be able to more easily synchronize data mutation events
+//        this is easier on the developer because we can trigger native events when data is mutated, and therefore we can trigger
+//        a recursive publication of that data change. can provide a "weight" heuristic to automatically resolve any remaining conflicts
 export class Service {
 
   constructor(name: String, model?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
@@ -44,7 +48,7 @@ export class Service {
     this.model         = model
     this.parent        = parent ? parent.relateTo(this) : null
     this.children      = this.relateToAll(children)
-    this.data          = {} // TODO - make this a Proxy object, integrating with publish
+    this.data          = {}
     this.subscriptions = []
     this.config        = config
 

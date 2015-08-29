@@ -167,6 +167,18 @@ describe('Service', () => {
         // TODO
       })
     })
+
+    xdescribe('when traversal is `depth_first_down`', () => {
+      it('should traverse the parent service', () => {
+        // TODO
+      })
+    })
+
+    xdescribe('when traversal is `depth_first_up`', () => {
+      it('should traverse the parent service', () => {
+        // TODO
+      })
+    })
   })
 
   describe('subscribe', () => {
