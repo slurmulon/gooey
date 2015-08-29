@@ -6,8 +6,8 @@
 // ▐█▄▪▐█▐█▌.▐▌▐█▌.▐▌▐█▄▄▌ ▐█▀·.
 // ·▀▀▀▀  ▀█▄▀▪ ▀█▄▀▪ ▀▀▀   ▀ • 
 
-const jsonPath = require('jsonpath'),
-      _ = require('lodash')
+import jsonPath from 'jsonpath'
+import _ from 'lodash'
 
 var _services = {}
 
