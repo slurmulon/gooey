@@ -1,5 +1,11 @@
 'use strict';
 
+//  ▄▄ •             ▄▄▄ . ▄· ▄▌
+// ▐█ ▀ ▪▪     ▪     ▀▄.▀·▐█▪██▌
+// ▄█ ▀█▄ ▄█▀▄  ▄█▀▄ ▐▀▀▪▄▐█▌▐█▪
+// ▐█▄▪▐█▐█▌.▐▌▐█▌.▐▌▐█▄▄▌ ▐█▀·.
+// ·▀▀▀▀  ▀█▄▀▪ ▀█▄▀▪ ▀▀▀   ▀ • 
+
 const jsonPath = require('jsonpath'),
       _ = require('lodash')
 
@@ -24,7 +30,6 @@ const _config = {
 }
 
 // supported types of tree traversals
-// const traversals = ['depth_down', 'depth_up', 'breadth_down', 'breadth_up']
 const traversals = ['depth', 'breadth']
 
 // a canonical, heiarchical source of data that can delegate updates bi-directionally
@@ -233,18 +238,12 @@ export class Service {
   }
 }
 
-export function service({name, model, parent, children, config}): Service {
-  return new Service(name, model, parent, children, config)
-}
-
-export function services(): Object {
-  return _services
-}
+export var service  = ({name, model, parent, children, config}) => new Service(name, model, parent, children, config) 
+export var services = _services
+export var clear    = () => { _services = new Set() }
 
 export class Subscription {
 
-  // TODO - make "then" some combination of a Promise and a proxy handler
-  // https://github.com/lukehoban/es6features#proxies
   constructor(service: Service, path: String, on: Function) {
     this.service = service
     this.path    = path
@@ -253,6 +252,7 @@ export class Subscription {
 
   end() {
     service.unsubscribe(this)
+
     Object.freeze(this)
   }
 
@@ -263,7 +263,3 @@ export class Subscription {
 
 // publish a data change across all services (searches for roots, leafs, and orphans)
 // export function publish(path: String, data)
-
-export function clear() {
-  _services = new Set()
-}

@@ -24,7 +24,7 @@ describe('Service', () => {
 
     it('should add valid services to the global service pool', () => {
       const service  = new gooey.Service('foo')
-      const services = gooey.services()
+      const services = gooey.services
 
       services.hasOwnProperty('foo').should.be.true
     })
