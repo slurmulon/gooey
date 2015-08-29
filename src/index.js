@@ -15,7 +15,7 @@ const _config = {
       queries : true
     },
 
-    broadcast: {
+    publish: {
       ignore: {
         falsy: true
       }
@@ -24,7 +24,8 @@ const _config = {
 }
 
 // supported types of tree traversals
-const traversals = ['depth_down', 'depth_up', 'breadth_down', 'breadth_up']
+// const traversals = ['depth_down', 'depth_up', 'breadth_down', 'breadth_up']
+const traversals = ['depth', 'breadth']
 
 // a canonical, heiarchical source of data that can delegate updates bi-directionally
 export class Service {
@@ -38,7 +39,7 @@ export class Service {
     this.model         = model
     this.parent        = parent ? parent.relateTo(this) : null
     this.children      = this.relateToAll(children)
-    this.data          = {} // TODO - make this a Proxy object, integrating with broadcast
+    this.data          = {} // TODO - make this a Proxy object, integrating with publish
     this.subscriptions = []
     this.config        = config
 
@@ -49,32 +50,40 @@ export class Service {
     }
   }
 
-  broadcast(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'breadth_down'): Promise {
+  publish(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'breadth'): Promise {
     if (!traversals.find(t => t === traversal)) {
-      throw `Failed to broadcast, invalid traversal: ${traversal}`
+      throw `Failed to publish, invalid traversal: ${traversal}`
     }
     
-    // subscribers who match the current broadcast
+    // subscribers who match the current publish
     const matches = this.subscriptions.filter(scrip => !!this.matches(data, scrip).size)
 
     // current service node. proxy data if this service's data update matches any subscriptions
     const result = matches.length ? matches.map(scrip => scrip.on(data)) : data
 
-    // breadth first, down 
+    // direction: down
     if (this.children.length) {
-      return Promise
-        .all(this.children.map(child => 
-          child.broadcast(result, success, error, traversal)
-        ))
+      if (traversal === 'breadth') {
+        return Promise
+          .all(this.children.map(child => 
+            child.publish(result, success, error, traversal)
+          ))
+      }
+
+      if (traversal === 'depth') {
+        return this.children.map(child =>
+          child.publish(result, success, error, traversal)
+        )
+      }
     }
 
-    // leaf node
+    // leaf node (TODO - reject)
     return new Promise((resolve, reject) => {
       resolve(success(result))
     })
   }
 
-  // creates and registers a broadcast subscription against a jsonpath pattern
+  // creates and registers a publish subscription against a jsonpath pattern
   subscribe(path: String = '$', on: Function): Subscription {
     const scrip = new Subscription(this.name, path, on)
 
@@ -83,19 +92,19 @@ export class Service {
     return scrip
   }
 
-  // ends a broadcast subscription
+  // ends a publish subscription
   unsubscribe(scrip: Subscription) {
     this.subscriptions.splice(this.subscriptions.indexOf(scrip), 1)
   }
 
-  // updates the Service's canonical data source with new data and broadcasts the change
+  // updates the Service's canonical data source with new data and publishs the change
   update(data, success?: Function, error?: Function): Promise {
     this.data = data
 
-    return this.broadcast(data, success, error)
+    return this.publish(data, success, error)
   }
 
-  // merges and updates the Service's canonical date source with a new data object and broadcasts the change
+  // merges and updates the Service's canonical date source with a new data object and publishs the change
   merge(data: Object, success?: Function, error?: Function): Promise {
     if (_.isObject(data)) {
       _.merge(this.data, data)
@@ -252,8 +261,8 @@ export class Subscription {
 // subscribe to all services and react to any data changes within them matching the provided hash
 // export function subscribe(hash: String, callback: Function)
 
-// broadcast a data change across all services (searches for roots, leafs, and orphans)
-// export function broadcast(path: String, data)
+// publish a data change across all services (searches for roots, leafs, and orphans)
+// export function publish(path: String, data)
 
 export function clear() {
   _services = new Set()

@@ -70,17 +70,17 @@ describe('Service', () => {
     })
   })
 
-  describe('broadcast', () => {
+  describe('publish', () => {
     it('should be a defined method', () => {
       const service = new gooey.Service('foo')
 
-      service.broadcast.should.type('function').be.true
+      service.publish.should.type('function').be.true
     })
 
     it('should error if an invalid traversal pattern is provided', () => {
       const service   = new gooey.Service('foo')
-      const broadcast = (() => {
-        service.broadcast('bar', null, null, 'crazy')
+      const publish = (() => {
+        service.publish('bar', null, null, 'crazy')
       }).should.throw()
     })
 
@@ -105,17 +105,17 @@ describe('Service', () => {
         childServiceA.subscribe('$.leaf', resultPusher)
         childServiceB.subscribe('$.evil', resultPusher)
 
-        rootService.broadcast(testData1, (success) => {
+        rootService.publish(testData1, (success) => {
           success.touchedBy = 'root'
           return success
         })
 
-        rootService.broadcast(testData2, (success) => {
+        rootService.publish(testData2, (success) => {
           success.touchedBy = 'inny'
           return success
         })
 
-        rootService.broadcast(testData3, (success) => {
+        rootService.publish(testData3, (success) => {
           success.touchedBy = 'leaf'
           return success
         })
@@ -139,7 +139,7 @@ describe('Service', () => {
           return data
         })
 
-        parentService.broadcast(testData)
+        parentService.publish(testData)
 
         testData.foundBy.should.containEql('childService1')
         testData.foundBy.should.containEql('childService2')
@@ -156,7 +156,7 @@ describe('Service', () => {
           return data
         })
 
-        parentService.broadcast(testData)
+        parentService.publish(testData)
 
         testData.foundBy.should.be.empty
       })
@@ -242,7 +242,7 @@ describe('Service', () => {
       service.update.should.type('function').be.true
     })
 
-    it('should update the Service\'s canonical source of data and broadcast the change', () => {
+    it('should update the Service\'s canonical source of data and publish the change', () => {
       const testData = {foo: 'bar'}
       const service  = new gooey.Service('parent')
 
@@ -267,7 +267,7 @@ describe('Service', () => {
       service.merge.should.type('function').be.true
     })
 
-    it('should merge, update and then broadcast the provided data', () => {
+    it('should merge, update and then publish the provided data', () => {
       const service = new gooey.Service('foo')
 
       service.update({a: 'a'})
@@ -290,7 +290,7 @@ describe('Service', () => {
       const results     = []
 
       service.subscribe('$.ignore', (data) => { results.push(data) })
-      service.broadcast(passiveData)
+      service.publish(passiveData)
 
       results.should.not.containEql(passiveData)
     })
@@ -301,7 +301,7 @@ describe('Service', () => {
       const results    = []
 
       service.subscribe('$.find', (data) => { results.push(data) })
-      service.broadcast(activeData)
+      service.publish(activeData)
 
       results.should.containEql(activeData)
     })
