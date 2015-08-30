@@ -1,15 +1,12 @@
 # Gooey
 
-> Data binding for the modern web
-
-Gooey is a publish/subscribe data-binding solution for ES6 Single Page Applications.
+> PubSub data-binding solution for ES6 Single Page Applications.
 
 ## Features
 
 * Hierarchical, bi-directional, acyclic event broadcasting
-* Services as proxies (data can be manipulated before being handed off to next service, great for piplineing)
-* Query subscriptions (in other words, subscribe to changes with JsonPath)
-* Streaming data subscriptions
+* Services as proxies (data can be safely mutated before being handed off to next service, great for pipelining)
+* Pattern-matched subscriptions (in other words, subscribe to changes via JsonPath)
 
 ## Goals
 
@@ -22,6 +19,10 @@ Gooey is a publish/subscribe data-binding solution for ES6 Single Page Applicati
 * Easily extensible to allow for new Services such as URL, REST, DOM, etc.
 * Simple configuration model (root defines globals, all other child services may override)
 * No shims other than Babel - it's time to move forward.
+
+## Model
+
+
 
 ## Installation
 
@@ -39,4 +40,9 @@ Gooey is a publish/subscribe data-binding solution for ES6 Single Page Applicati
 
 ## TODO
 
-- [ ] Everything
+- [ ] Depth-first Down Traversal (in prog.)
+- [ ] Depth-first Up Traversal
+- [ ] Breadth-first Down Traversal
+- [ ] Breadth-first Up Traversal
+- [ ] Concurrent traversals
+- [ ] Sibling collisions

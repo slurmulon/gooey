@@ -179,6 +179,35 @@ describe('Service', () => {
         // TODO
       })
     })
+
+    it('should properly support nested publish calls to disjoint services', () => {
+      const serviceA = new gooey.Service('A')
+      const serviceB = new gooey.Service('B')
+      const testData = {}
+
+      serviceA.subscribe('$', obj => {
+        obj.a = true
+        return serviceB.update(obj)
+      })
+
+      serviceB.subscribe('$.a', obj => {
+        obj.b = true
+        return obj
+      })
+
+      serviceA.publish(testData)
+
+      testData.should.have.ownProperty('a')
+      testData.should.have.ownProperty('b')
+    })
+
+    xit('should be able to recognize and synchronize identical publish events that are being executed concurrently', () => {
+      // TODO
+    })
+
+    xit('should traverse the service tree with a hamiltonian path', () => {
+      // TODO
+    })
   })
 
   describe('subscribe', () => {
@@ -494,9 +523,5 @@ describe('Service', () => {
       new gooey.Service.cycleExists().should.be.false
     })
   })
-
-})
-
-describe('Component', () => {
 
 })

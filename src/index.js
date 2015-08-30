@@ -60,6 +60,8 @@ export class Service {
     if (!traversals.find(t => t === traversal)) {
       throw `Failed to publish, invalid traversal: ${traversal}`
     }
+
+    // data = _.clone(data, true) // FIXME
     
     // subscribers who match the current publish
     const matches = this.subscriptions.filter(scrip => !!this.matches(data, scrip).size)
@@ -74,6 +76,7 @@ export class Service {
           .all(this.children.map(child => 
             child.publish(result, success, error, traversal)
           ))
+          // TODO - add a user-provided conflict resolution fn (for children on same depth)
       }
 
       if (traversal === 'depth') {
@@ -81,6 +84,8 @@ export class Service {
           child.publish(result, success, error, traversal)
         )
       }
+
+      // NOTE - traversals should be hamiltonian (visit all nodes, visit each only once)
     }
 
     // leaf node (TODO - reject)
