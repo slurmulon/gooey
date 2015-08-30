@@ -123,26 +123,25 @@ describe('Service', () => {
         results.should.eql([testData1, testData2, testData3])
       })
   
-      it('should modify data when a subscription matches before passing off the data to child services', () => {
-        const parentService = new gooey.Service('parent')
-        const childService1 = new gooey.service({name: 'child1', parent: parentService})
-        const childService2 = new gooey.service({name: 'child2', parent: parentService})
+      it('should safely modify data when a subscription matches before passing off the data to child services', () => {
+        const parent   = new gooey.Service('parent')
+        const child    = new gooey.service({name: 'child', parent})
         const testData = {find: true, foundBy: []}
 
-        childService1.subscribe('$.find', (data) => {
-          data.foundBy.push('childService1')
+        parent.subscribe('$.find', data => {
+          data.foundBy.push('parent')
           return data
         })
 
-        childService2.subscribe('$.find', (data) => {
-          data.foundBy.push('childService2')
+        const testScrip = child.subscribe('$.find', data => {
+          data[0].foundBy.push('child') // FIXME - data should not be an array, subscribe needs to just be a Promise
           return data
         })
 
-        parentService.publish(testData)
-
-        testData.foundBy.should.containEql('childService1')
-        testData.foundBy.should.containEql('childService2')
+        parent.publish(testData, res => { // FIXME - publish needs to return the final pipelined result
+          res.foundBy.should.containEql('parent')
+          res.foundBy.should.containEql('child')
+        })
       })
 
       it('should not modify data and return it in the original state if no subscriptions match', () => {
@@ -185,14 +184,13 @@ describe('Service', () => {
       const serviceB = new gooey.Service('B')
       const testData = {}
 
-      serviceA.subscribe('$', obj => {
-        obj.a = true
-        return serviceB.update(obj)
+      serviceA.subscribe('$', () => {
+        testData.a = true
+        serviceB.update(testData)
       })
 
-      serviceB.subscribe('$.a', obj => {
-        obj.b = true
-        return obj
+      serviceB.subscribe('$.a', () => {
+        testData.b = true
       })
 
       serviceA.publish(testData)
@@ -201,11 +199,11 @@ describe('Service', () => {
       testData.should.have.ownProperty('b')
     })
 
-    xit('should be able to recognize and synchronize identical publish events that are being executed concurrently', () => {
+    xit('should be able to synchronize identical publish events that are being executed concurrently', () => {
       // TODO
     })
 
-    xit('should traverse the service tree with a hamiltonian path', () => {
+    xit('should traverse the service tree using a hamiltonian path', () => {
       // TODO
     })
   })

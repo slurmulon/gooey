@@ -15,6 +15,7 @@ var _services = {}
 // default service configuration
 const _config = {
   strict: true,
+
   data: {
     lazy: false,
 
@@ -27,11 +28,15 @@ const _config = {
         falsy: true
       }
     }
+  },
+
+  traversals: {
+
   }
 }
 
 // supported flavors of service tree traversals
-const traversals = ['depth', 'breadth']
+const traversals = ['depth', 'breadth', {'async': ['global', 'local']}]
 
 // a canonical, heiarchical source of data that can delegate updates bi-directionally
 export class Service {
@@ -52,7 +57,8 @@ export class Service {
     _services[name] = this
 
     if (this.model) {
-      this.model(this.data)
+      // this.model(this.data) // TODO - make model inherit these methods
+      this.model.call(this, this.data)
     }
   }
 
@@ -61,7 +67,7 @@ export class Service {
       throw `Failed to publish, invalid traversal: ${traversal}`
     }
 
-    // data = _.clone(data, true) // FIXME
+    data = _.clone(data, true)
     
     // subscribers who match the current publish
     const matches = this.subscriptions.filter(scrip => !!this.matches(data, scrip).size)
@@ -84,7 +90,6 @@ export class Service {
           child.publish(result, success, error, traversal)
         )
       }
-
       // NOTE - traversals should be hamiltonian (visit all nodes, visit each only once)
     }
 
@@ -248,6 +253,7 @@ export var service  = ({name, model, parent, children, config}) => new Service(n
 export var services = _services
 export var clear    = () => { _services = new Set() }
 
+// TODO - may as well make this extend Promise
 export class Subscription {
 
   constructor(service: Service, path: String, on: Function) {
