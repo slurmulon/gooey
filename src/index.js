@@ -57,8 +57,7 @@ export class Service {
     _services[name] = this
 
     if (this.model) {
-      // this.model(this.data) // TODO - make model inherit these methods
-      this.model.call(this, this.data)
+      this.model.call(this, this.data) // TODO - make model inherit Service proto
     }
   }
 
@@ -67,6 +66,7 @@ export class Service {
       throw `Failed to publish, invalid traversal: ${traversal}`
     }
 
+    // ensure data is pure
     data = _.clone(data, true)
     
     // subscribers who match the current publish
@@ -75,7 +75,7 @@ export class Service {
     // current service node. proxy data if this service's data update matches any subscriptions
     const result = matches.length ? matches.map(scrip => scrip.on(data)) : data
 
-    // direction: down
+    // publication traversal (sync:down)
     if (this.children.length) {
       if (traversal === 'breadth') {
         return Promise
@@ -92,6 +92,10 @@ export class Service {
       }
       // NOTE - traversals should be hamiltonian (visit all nodes, visit each only once)
     }
+
+    // publication traversal (sync:up)
+    // publication traversal (async:global)
+    // publication traversal (async:local)
 
     // leaf node (TODO - reject)
     return new Promise((resolve, reject) => {
@@ -201,6 +205,10 @@ export class Service {
   isLeaf(): Boolean {
     return !this.children
   }
+
+  // traversal() {
+
+  // }
 
   // determines all root node Services in the tree
   static findRoots(services: Array = _services): Array {
