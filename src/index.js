@@ -58,7 +58,7 @@ export class Service {
 
     if (this.model) {
       this.model(this.data)
-      // this.model.call({derp: true}, this.data) // TODO - make model inherit Service proto. this needs to be lazy for `this` to be correct
+      // this.model.call(this, this.data) // TODO - make model inherit Service proto. this needs to be lazy for `this` to be correct
     }
   }
 
