@@ -36,7 +36,7 @@ const _config = {
 }
 
 // supported flavors of service tree traversals
-const traversals = ['depth', 'breadth', {'async': ['global', 'local']}]
+const traversals = ['depth', 'breadth', 'async_global', 'async_local']
 
 // a canonical, heiarchical source of data that can delegate updates bi-directionally
 export class Service {
@@ -57,11 +57,13 @@ export class Service {
     _services[name] = this
 
     if (this.model) {
-      this.model.call(this, this.data) // TODO - make model inherit Service proto
+      this.model(this.data)
+      // this.model.call({derp: true}, this.data) // TODO - make model inherit Service proto. this needs to be lazy for `this` to be correct
     }
   }
 
-  publish(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'breadth'): Promise {
+  // traverses service tree via a hamiltonian path and matches subscribers against the published data
+  publish(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'breadth', direction: String = 'down'): Promise {
     if (!traversals.find(t => t === traversal)) {
       throw `Failed to publish, invalid traversal: ${traversal}`
     }
@@ -75,14 +77,13 @@ export class Service {
     // current service node. proxy data if this service's data update matches any subscriptions
     const result = matches.length ? matches.map(scrip => scrip.on(data)) : data
 
-    // publication traversal (sync:down)
-    if (this.children.length) {
+    // publication traversal (downs)
+    if (direction === 'down' && this.children.length) {
       if (traversal === 'breadth') {
         return Promise
           .all(this.children.map(child => 
             child.publish(result, success, error, traversal)
           ))
-          // TODO - add a user-provided conflict resolution fn (for children on same depth)
       }
 
       if (traversal === 'depth') {
@@ -90,12 +91,11 @@ export class Service {
           child.publish(result, success, error, traversal)
         )
       }
-      // NOTE - traversals should be hamiltonian (visit all nodes, visit each only once)
     }
 
-    // publication traversal (sync:up)
-    // publication traversal (async:global)
-    // publication traversal (async:local)
+    // NOTE - traversals should be hamiltonian (visit all nodes, visit each only once)
+    // publication traversal (ups)
+    // publication traversal (async_local)
 
     // leaf node (TODO - reject)
     return new Promise((resolve, reject) => {
@@ -152,7 +152,7 @@ export class Service {
   matches(data, scrip: Subscription): Set {
     const matchSet = new Set()
 
-    if (this.config.data.matching.queries) {
+    if (this.config.data.matching.queries) { // TODO - determine if jsonpath query
       const jpMatches = jsonPath.query(data, scrip.path)
 
       if (jpMatches && !!jpMatches.length) {
@@ -205,10 +205,6 @@ export class Service {
   isLeaf(): Boolean {
     return !this.children
   }
-
-  // traversal() {
-
-  // }
 
   // determines all root node Services in the tree
   static findRoots(services: Array = _services): Array {
@@ -282,4 +278,5 @@ export class Subscription {
 // export function subscribe(hash: String, callback: Function)
 
 // publish a data change across all services (searches for roots, leafs, and orphans)
+// traversal: async_global
 // export function publish(path: String, data)

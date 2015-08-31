@@ -14,8 +14,8 @@ describe('Service', () => {
       gooey.service.should.throw()
     })
 
-    it('should invoke the factory method with a reference to the data', () => {
-      const service = new gooey.Service('foo', (data) => {
+    it('should invoke the model method with a reference to the service\'s data', () => {
+      const service = new gooey.Service('foo', data => {
         data.touched = true
       })
 

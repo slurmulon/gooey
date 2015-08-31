@@ -45,4 +45,4 @@
 - [ ] Breadth-first Down Traversal
 - [ ] Breadth-first Up Traversal
 - [ ] Concurrent traversals
-- [ ] Sibling collisions
+- [ ] Sibling collisions (Up direction)
