@@ -209,14 +209,14 @@ export class Service {
   // determines all root node Services in the tree
   static findRoots(services: Array = _services): Array {
     return _(services).values().filter(svc =>
-      (svc instanceof Service) ? svc.isRoot() : false
+      (svc instanceof Service) && svc.isRoot()
     ).value()
   }
 
   // determines all leaf node Services in the tree
   static findLeafs(services: Array = _services): Array {
     return _(services).values().filter(svc =>
-      (svc instanceof Service) ? svc.isLeaf() : false
+      (svc instanceof Service) && svc.isLeaf()
     ).value()
   }
 
@@ -280,3 +280,6 @@ export class Subscription {
 // publish a data change across all services (searches for roots, leafs, and orphans)
 // traversal: async_global
 // export function publish(path: String, data)
+
+// allows a gooey service tree to be defined througha a convenient meta-descriptive POJO
+// export function meta(meta: Object)
