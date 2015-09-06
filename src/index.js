@@ -64,14 +64,10 @@ export class Service {
 
   // traverses service tree via a conflict-free path and matches subscribers against the published data
   publish(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'breadth', direction: String = 'down'): Promise {
-    if (!traversals.find(t => t === traversal)) {
-      throw `Failed to publish, invalid traversal: ${traversal}`
-    }
-
     // ensure data is pure
     data = _.clone(data, true)
     
-    // subscribers who match the current publish
+    // subscribers who match the current published data
     const matches = this.subscriptions.filter(scrip => !!this.matches(data, scrip).size)
 
     // current service node. proxy data if this service's data update matches any subscriptions
@@ -81,7 +77,7 @@ export class Service {
     return this.traverse(
       result, traversal, direction, success, error,
       child => {
-        child.publish(result, success, error, traversal)
+        child.publish(result, success, error, traversal, direction)
       }
     )
   }
@@ -150,33 +146,31 @@ export class Service {
     return matchSet
   }
 
-  // recursively traverses service tree
+  // recursively traverses service tree via provided `next` functgion
   traverse(data, traversal: String, direction: String, success: Function, error: Function, next: Function): Promise {
+    if (!traversals.find(t => t === traversal)) {
+      throw `Failed to publish, invalid traversal: ${traversal}`
+    }
+
     if (direction === 'down' && this.children.length) {
       if (traversal === 'breadth') {
         return Promise.all(
-          this.children.map(child => {
-            next(child)
-          })
+          this.children.map(child => next(child))
         )
       }
 
       if (traversal === 'depth') {
-        return this.children.map(child =>
-          next(child)
-        )
+        return this.children.map(child => next(child))
       }
     }
+    // TODO - up direction, async_local traversal
 
-    // TODO - up direction
-    // TODO - async_local traversal
-
-    // current node (TODO - allow a better way to reject other than throwing exceptions)
+    // end node
     return new Promise((resolve, reject) => {
       try {
-        let successResult = success(result)
+        let it = success(result)
 
-        resolve(successResult)
+        resolve(it)
       } catch (err) {
         reject(err)
       }
@@ -249,7 +243,7 @@ export class Service {
     let curNode = null
     let cyclic  = false
 
-    _.forEach(roots, (root) => {
+    _.forEach(roots, root => {
       curNode = root
 
       while (!cyclic && !_.isEmpty(curNode.children)) {
