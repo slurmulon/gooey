@@ -68,10 +68,10 @@ export class Service {
     data = _.clone(data, true)
     
     // subscribers who match the current published data
-    const matches = this.subscriptions.filter(scrip => !!this.matches(data, scrip).size)
+    const scrips = this.subscriptions.filter(scrip => !!this.matches(data, scrip).size)
 
     // current service node. proxy data if this service's data update matches any subscriptions
-    const result = matches.length ? matches.map(scrip => scrip.on(data)) : data
+    const result = scrips.length ? scrips.map(scrip => scrip.on(data)) : data
 
     // traverse service node tree and publish on each "next" node
     return this.traverse(
@@ -149,7 +149,7 @@ export class Service {
   // recursively traverses service tree via provided `next` functgion
   traverse(data, traversal: String, direction: String, success: Function, error: Function, next: Function): Promise {
     if (!traversals.find(t => t === traversal)) {
-      throw `Failed to publish, invalid traversal: ${traversal}`
+      throw `Failed to traverse, invalid traversal type: ${traversal}`
     }
 
     if (direction === 'down' && this.children.length) {
