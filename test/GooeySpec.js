@@ -84,7 +84,7 @@ describe('Service', () => {
       }).should.throw()
     })
 
-    describe('when traversal is `breadth_first_down`', () => {
+    describe('when traversal is `breadth` and direction is `down`', () => {
       it('should recursively traverse child services (depth: syncronous, breadth: asynchronous)', () => {
         const childServiceA = new gooey.Service('childA')
         const childServiceB = new gooey.Service('childB')
@@ -161,19 +161,19 @@ describe('Service', () => {
       })
     })
 
-    xdescribe('when traversal is `breadth_first_up`', () => {
+    xdescribe('when traversal is `breadth` and direction is `up`', () => {
       it('should traverse the parent service', () => {
         // TODO
       })
     })
 
-    xdescribe('when traversal is `depth_first_down`', () => {
+    xdescribe('when traversal is `depth` and direction is `down`', () => {
       it('should traverse the parent service', () => {
         // TODO
       })
     })
 
-    xdescribe('when traversal is `depth_first_up`', () => {
+    xdescribe('when traversal is `depth` and direction is `up`', () => {
       it('should traverse the parent service', () => {
         // TODO
       })
@@ -287,13 +287,11 @@ describe('Service', () => {
 
       const scrip = service.on('$.foo', data => {
         data.matched = true
-        return data
       })
 
       const update = service.use(testData, data => {
         data.updated = true
-        return data
-      }).then((d) => {
+      }).then(() => {
         testData.should.eql({foo: 'bar', matched: true, updated: true})
       })
     })
@@ -328,7 +326,7 @@ describe('Service', () => {
       const passiveData = {ignore: true}
       const results     = []
 
-      service.subscribe('$.ignore', (data) => { results.push(data) })
+      service.subscribe('$.ignore', data => { results.push(data) })
       service.publish(passiveData)
 
       results.should.not.containEql(passiveData)
@@ -339,7 +337,7 @@ describe('Service', () => {
       const activeData = {find: true}
       const results    = []
 
-      service.subscribe('$.find', (data) => { results.push(data) })
+      service.subscribe('$.find', data => { results.push(data) })
       service.publish(activeData)
 
       results.should.containEql(activeData)

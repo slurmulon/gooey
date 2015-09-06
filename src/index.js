@@ -62,7 +62,7 @@ export class Service {
     }
   }
 
-  // traverses service tree via a hamiltonian path and matches subscribers against the published data
+  // traverses service tree via a conflict-free path and matches subscribers against the published data
   publish(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'breadth', direction: String = 'down'): Promise {
     if (!traversals.find(t => t === traversal)) {
       throw `Failed to publish, invalid traversal: ${traversal}`
@@ -77,30 +77,13 @@ export class Service {
     // current service node. proxy data if this service's data update matches any subscriptions
     const result = matches.length ? matches.map(scrip => scrip.on(data)) : data
 
-    // publication traversal (downs)
-    if (direction === 'down' && this.children.length) {
-      if (traversal === 'breadth') {
-        return Promise
-          .all(this.children.map(child => 
-            child.publish(result, success, error, traversal)
-          ))
+    // traverse service node tree and publish on each "next" node
+    return this.traverse(
+      result, traversal, direction, success, error,
+      child => {
+        child.publish(result, success, error, traversal)
       }
-
-      if (traversal === 'depth') {
-        return this.children.map(child =>
-          child.publish(result, success, error, traversal)
-        )
-      }
-    }
-
-    // NOTE - traversals should be hamiltonian (visit all nodes, visit each only once)
-    // publication traversal (ups)
-    // publication traversal (async_local)
-
-    // leaf node (TODO - reject)
-    return new Promise((resolve, reject) => {
-      resolve(success(result))
-    })
+    )
   }
 
   // creates and registers a publish subscription against a jsonpath pattern
@@ -165,6 +148,39 @@ export class Service {
     }
 
     return matchSet
+  }
+
+  // recursively traverses service tree
+  traverse(data, traversal: String, direction: String, success: Function, error: Function, next: Function): Promise {
+    if (direction === 'down' && this.children.length) {
+      if (traversal === 'breadth') {
+        return Promise.all(
+          this.children.map(child => {
+            next(child)
+          })
+        )
+      }
+
+      if (traversal === 'depth') {
+        return this.children.map(child =>
+          next(child)
+        )
+      }
+    }
+
+    // TODO - up direction
+    // TODO - async_local traversal
+
+    // current node (TODO - allow a better way to reject other than throwing exceptions)
+    return new Promise((resolve, reject) => {
+      try {
+        let successResult = success(result)
+
+        resolve(successResult)
+      } catch (err) {
+        reject(err)
+      }
+    })
   }
 
   //  TODO - validate for cyclic dependencies
