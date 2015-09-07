@@ -154,22 +154,29 @@ export class Service {
     if (direction === 'down' && this.children.length) {
       if (traversal === 'breadth') {
         return Promise.all(
-          this.children.map(child => next(child))
+          this.children.map(next)
         )
       }
 
       if (traversal === 'depth') {
-        return this.children.map(child => next(child))
+        return this.children.map(next)
       }
     }
-    // TODO - up direction, async_local traversal
 
-    if (direction === 'up' && this.parent) {
-      if (traversal === 'breadth') {
-        // get siblings
-        // get parent
-      }
-    }
+    // TODO/WIP
+    // if (direction === 'up' && this.parent) {
+    //   if (traversal === 'breadth') {
+    //     return Promise.all( // delegate to all services sharing parent's depth
+    //       this.parent.siblings(this, true).map(next)
+    //     )
+    //   }
+
+    //   if (traversal === 'depth') {
+    //     return this.parent.siblings(this, true).map(next)
+    //   }
+    // }
+
+    // TODO - async_local traversal
 
     // end node
     return new Promise((resolve, reject) => {
@@ -215,7 +222,7 @@ export class Service {
     const roots = Service.findRoots()
     const depth = node.depth()
 
-    return Service.atDepth(depth, roots).filter(svc => svc !== node)
+    return Service.findAtDepth(depth, roots).filter(svc => svc !== node)
   }
 
   // determines if the service is a root node in the service tree
@@ -242,7 +249,7 @@ export class Service {
     ).value()
   }
 
-  static atDepth(targetDepth: Int, headNodes: Array): Array {
+  static findAtDepth(targetDepth: Int, headNodes: Array): Array {
     const found  = []
     let curDepth = 0
 
@@ -251,7 +258,7 @@ export class Service {
         curDepth = child.depth()
 
         if (curDepth < targetDepth) {
-          found.push(...this.atDepth(targetDepth, [child]))
+          found.push(...this.findAtDepth(targetDepth, [child]))
         } else if (curDepth === targetDepth) {
           found.push(child)
         }
