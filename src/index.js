@@ -50,15 +50,14 @@ export class Service {
     this.model         = model
     this.parent        = parent ? parent.relateTo(this) : null
     this.children      = this.relateToAll(children)
-    this.data          = {}
+    this.state         = {}
     this.subscriptions = []
     this.config        = config
 
     _services[name] = this
 
     if (this.model) {
-      this.model(this.data)
-      // this.model.call(this, this.data) // TODO - make model inherit Service proto. this needs to be lazy for `this` to be correct
+      this.model(this.state)
     }
   }
 
@@ -165,12 +164,17 @@ export class Service {
     }
     // TODO - up direction, async_local traversal
 
+    if (direction === 'up' && this.parent) {
+      if (traversal === 'breadth') {
+        // get siblings
+        // get parent
+      }
+    }
+
     // end node
     return new Promise((resolve, reject) => {
       try {
-        let it = success(result)
-
-        resolve(it)
+        resolve(success(result))
       } catch (err) {
         reject(err)
       }
@@ -206,6 +210,14 @@ export class Service {
     return nodeDepth
   }
 
+  // determines all siblings of the service
+  siblings(node = this, global: Boolean = false) {
+    const roots = Service.findRoots()
+    const depth = node.depth()
+
+    return Service.atDepth(depth, roots).filter(svc => svc !== node)
+  }
+
   // determines if the service is a root node in the service tree
   isRoot(): Boolean {
     return !this.parent
@@ -230,9 +242,23 @@ export class Service {
     ).value()
   }
 
-  // determines if a service name is already registered in the tree
-  static isRegistered(name: String): Boolean {
-    return _.contains(Array.from(_services).map(s => s.name), name)
+  static atDepth(targetDepth: Int, headNodes: Array): Array {
+    const found  = []
+    let curDepth = 0
+
+    _.forEach(headNodes, node => {
+      _.forEach(node.children, child => {
+        curDepth = child.depth()
+
+        if (curDepth < targetDepth) {
+          found.push(...this.atDepth(targetDepth, [child]))
+        } else if (curDepth === targetDepth) {
+          found.push(child)
+        }
+      })
+    })
+
+    return found
   }
 
   // determines if a cyclic relationship exists anywhere in the service tree
@@ -260,6 +286,11 @@ export class Service {
     })
 
     return cyclic
+  }
+
+  // determines if a service name is already registered in the tree
+  static isRegistered(name: String): Boolean {
+    return _.contains(Array.from(_services).map(s => s.name), name)
   }
 }
 

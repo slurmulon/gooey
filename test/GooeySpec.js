@@ -14,12 +14,12 @@ describe('Service', () => {
       gooey.service.should.throw()
     })
 
-    it('should invoke the model method with a reference to the service\'s data', () => {
+    it('should invoke the model method with a reference to the service\'s state object', () => {
       const service = new gooey.Service('foo', data => {
         data.touched = true
       })
 
-      service.data.should.eql({touched: true})
+      service.state.should.eql({touched: true})
     })
 
     it('should add valid services to the global service pool', () => {
@@ -485,7 +485,7 @@ describe('Service', () => {
       service.depth.should.type('function').be.true
     })
 
-    it('should return the Service\'s depth in the tree heirarchy', () => {
+    it('should return the Service\'s depth in the tree hierarchy', () => {
       const parent = new gooey.Service('parent')
       const child1 = new gooey.service({name: 'child',  parent: parent})
       const child2 = new gooey.service({name: 'child2', parent: parent})
@@ -495,6 +495,39 @@ describe('Service', () => {
       child1.depth().should.equal(1)
       child2.depth().should.equal(1)
       childSub1.depth().should.equal(2)
+      // })
+    })
+
+    describe('siblings', () => {
+      it('should be a defined method', () => {
+        const service = new gooey.Service('foo')
+
+        service.siblings.should.type('function').be.true
+      })
+
+      describe('global search', () => {
+        it('should return all services in the hierarchy with the same depth, excluding the initiating service', () => {
+          const parent = new gooey.Service('parent')
+          const child1 = new gooey.service({name: 'child1', parent: parent})
+          const child2 = new gooey.service({name: 'child2', parent: parent})
+          const childSub1 = new gooey.service({name: 'childSub1', parent: child1})
+          const childSub2 = new gooey.service({name: 'childSub2', parent: child2})
+          const childSub3 = new gooey.service({name: 'childSub3', parent: child2})
+
+          parent.siblings().should.be.empty
+          child1.siblings().map(s => s.name).should.eql(['child2'])
+          child2.siblings().map(s => s.name).should.eql(['child1'])
+          childSub1.siblings().map(s => s.name).should.eql(['childSub2', 'childSub3'])
+          childSub2.siblings().map(s => s.name).should.eql(['childSub1', 'childSub3'])
+          childSub3.siblings().map(s => s.name).should.eql(['childSub1', 'childSub2'])
+        })
+      })
+
+      xdescribe('local search', () => {
+        it('should return all service in the hierarchy with the same immediate parent', () => {
+
+        })
+      })
     })
   })
 
