@@ -153,9 +153,7 @@ export class Service {
 
     if (direction === 'down' && this.children.length) {
       if (traversal === 'breadth') {
-        return Promise.all(
-          this.children.map(next)
-        )
+        return Promise.all(this.children.map(next))
       }
 
       if (traversal === 'depth') {
@@ -163,18 +161,17 @@ export class Service {
       }
     }
 
-    // TODO/WIP
-    // if (direction === 'up' && this.parent) {
-    //   if (traversal === 'breadth') {
-    //     return Promise.all( // delegate to all services sharing parent's depth
-    //       this.parent.siblings(this, true).map(next)
-    //     )
-    //   }
+    if (direction === 'up' && this.parent) { // WIP!
+      if (traversal === 'breadth') {
+        return Promise.all(
+          this.parent.siblings(null, true).map(next)
+        )
+      }
 
-    //   if (traversal === 'depth') {
-    //     return this.parent.siblings(this, true).map(next)
-    //   }
-    // }
+      if (traversal === 'depth') {
+        return this.parent.siblings(null, true).map(next)
+      }
+    }
 
     // TODO - async_local traversal
 
@@ -249,11 +246,11 @@ export class Service {
     ).value()
   }
 
-  static findAtDepth(targetDepth: Int, headNodes: Array): Array {
+  static findAtDepth(targetDepth: Int, nodes: Array): Array {
     const found  = []
     let curDepth = 0
 
-    _.forEach(headNodes, node => {
+    _.forEach(nodes, node => {
       _.forEach(node.children, child => {
         curDepth = child.depth()
 
