@@ -246,6 +246,7 @@ export class Service {
     ).value()
   }
 
+  // determines which nodes (out of the provided array) are at the given depth
   static findAtDepth(targetDepth: Int, nodes: Array): Array {
     const found  = []
     let curDepth = 0
