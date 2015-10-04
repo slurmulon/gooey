@@ -1,6 +1,6 @@
 # Gooey
 
-> PubSub data delegation solution for ES6 Single Page Applications.
+> PubSub data synchronization solution for ES6.
 
 ## Features
 
