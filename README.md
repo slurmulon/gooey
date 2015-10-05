@@ -6,7 +6,7 @@ Put abstractly, a Single Page Application (SPA) is based on a dynamic multi-laye
 The interactions between these components and the layers between them often span networks (for instance, your Rest API and Client app) and typically become more complex over time as the application grows.
 
 Synchronizing the data between the components and layers of this dynamic context is, in my opinion, one of the greatest challenges
-facing complex SPAs.
+facing large / complex SPAs.
 
 Gooey aims to ease the management of complex multi-layer components by iscolating and refining the imperative patterns into a single library.
 
@@ -53,7 +53,7 @@ inefficient and bug-prone solutions that emphasize digest cycles or queued liste
 Gooey avoids many common pitfalls of data synchronization by combining the following traits, patterns, and philosophies:
 
 * Publish / Subscribe as primary synchronization mechanism
-* Hierarchical acyclic relationships betwen Services
+* Hierarchical acyclic relationships between `Services`
 * Bi-directional data traversals (synchronous and asynchronous)
 * Allow decoupled communication between `Services` via pattern-matched events
 * `Services` are canonical
@@ -106,6 +106,7 @@ However, this design is out of the scope of Gooey core and will be in a module o
 ## Installation
 
 > $ npm install
+
 > $ gulp install
 
 ## Testing
