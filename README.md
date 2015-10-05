@@ -38,7 +38,7 @@ Gooey aims to ease the management of complex multi-layer component states by isc
 ### Concrete
 
 SPAs typically consume Restful HTTP APIs. HTTP APIs are stateless and SPA clients are stateful, introducing an obvious and interesting conflict.
-The client is responsible for ensuring that its own representations of API entity states are accurate, often involving the nested states of sub-entities as well.
+The client is responsible for ensuring that its own representations of API entity states are accurate, often involving reference entities and nested states of sub-entities.
 This gap in state makes it possible for the client to have one representation of an entity and the API another.
 
 The following is a non-exhaustive list of designs that attempt to alleviate the problem but seem to fall short because they do not address the root issue:
@@ -109,14 +109,17 @@ model components depend on it.
 Assume that a User can be viewing either one Quote or Proposal at a time. If a Quote is selected,
 then the User must also have one System and one Finance Product selected.
 
-What can make this simple yet dynamic context difficult to manage? (Examples represent potential future requirements):
+What can make this simple yet dynamic context difficult to manage? (Examples may represent future business requirements):
 
  - Component states are often decoupled and split across layers of the stack
-    * Example: The state of the User and its dependent components must also be synchronized with the the view and the API
+    * Example: The state of the User and its dependent components must be synchronized with relevant models, views, controllers, and API resources
  - Strong coupling between components (components expclitly reference and depend on each other)
     * Example: If the address of a User's only Quote is changed, reflect the change in the User's primary address as well
- - Distant interdependencies between components
-    * Example: If a System reaches a "finance ready" state, the Quote now needs Documents which the User can sign. User can't interact with other parts of the application until they sign or reject the Documents.
+ - Distant interdependencies between client components that are difficult to architect cleanly
+    * Example: If a System reaches a "finance ready" state, the Quote now needs to acquire Documents which the User can sign.
+      Quote state must be refreshed via API in order to acquire Documents.
+      Quote and Systems are functionally disabled until Documents are signed or rejected, but changes to Finance Products will
+      re-generate Documents for a Quote.
  - Difficult to synchronize effects and limitations of errors between relevant components
     * Example: If a Finance Product component experiences a 500 error, ensure that User can no longer access the Quote and, if possible, re-select a new Quote for the User.
 
