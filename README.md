@@ -26,7 +26,7 @@ SPAs typically consume Restful HTTP APIs. HTTP APIs are stateless and SPA client
 For example, Restful HTTP APIs encourage granular updates to resource entities but force clients to handle updates to other entities in the client (and sometimes in the API) that are partially or even direclty related to them.
 This gap in state and shift in responsibility makes it possible for the client to have one representation of an entity and the API another.
 
-An alternative is to integrate with more monolothic responses from resources that are typically pushing the boundaries of their scope, which of course isn't great because it reminds us of the painful age of page refreshes.
+An alternative is to integrate with more monolithic responses from resources that are typically pushing the boundaries of their scope, which of course isn't great because it reminds us of the painful age of page refreshes.
 Another approach is to reflect and duplicate the domain model present in the API, but this isn't very maintainable and doesn't address the root of the problem.
 
 Allowing client-side components to interact with each other via publish / subscribe messaging enables them to synchronize their state safely and efficiently.
