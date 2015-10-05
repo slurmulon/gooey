@@ -4,10 +4,10 @@
 
 ## Problem
 
-Single Page Applications (SPAs) enable incredibly responsive user experiences on the web by loading an application once and then dynamically updating
+Single Page Applications (SPAs) enable incredibly responsive user experiences by loading a web application once and then dynamically updating
 the state of the client application via JavaScript and asynchronous HTTP requests.
 
-SPAs are innovative and play an integral role in slick modern web experiences, but the engineers of these applications are often faced with challenges regarding state.
+SPAs are innovative and an integral part of the modern web, but the engineers of these applications are often faced with challenges regarding state.
 I've described the issues as I see them in both abstract and concrete terms.
 
 ### Abstract
