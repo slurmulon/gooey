@@ -22,12 +22,13 @@ Gooey aims to ease the management of complex multi-layer component states by isc
 
 ### Concrete
 
-SPAs typically consume Restful HTTP APIs. HTTP APIs are stateless and SPA clients are stateful, introducing an interesting conflict. 
-For example, Restful HTTP APIs encourage granular updates to resource entities but force clients to handle updates to other entities in the client (and sometimes in the API) that are partially or even direclty related to them.
+SPAs typically consume Restful HTTP APIs. HTTP APIs are stateless and SPA clients are stateful, introducing an interesting conflict.
+The client is responsible for ensuring that its own representations of API entity states are accurate, often involving the nested states of sub-entities as well.
 This gap in state and shift in responsibility makes it possible for the client to have one representation of an entity and the API another.
 
-An alternative is to integrate with more monolithic responses from resources that are typically pushing the boundaries of their scope, which of course isn't great because it reminds us of the painful age of page refreshes.
-Another approach is to reflect and duplicate the domain model present in the API, but this isn't very maintainable and doesn't address the root of the problem.
+One solution to the state problem is to integrate with more monolithic responses from resources that are typically pushing the boundaries of their scope, which of course isn't great because it reminds us of the painful age of page refreshes.
+Another approach is to closely reflect the domain model of the API into the client, but this isn't very maintainable because it encourages duplication. It also doesn't address the root of the problem.
+Lastly you can allow API resources to provide both granular and verbose responses, common in HATEOS web apps. However this can break down quickly when resource hierarchies become large and complex because it is difficult for routing systems to cleanly support nested querying on resource entities (e.g. full response provides entities A through D, but I only want B and C).
 
 Allowing client-side components to interact with each other via publish / subscribe messaging enables them to synchronize their state flexibly and efficiently.
 As an effect, complex client-side components can more easily interact and synchronize with their API resource counterparts.
@@ -72,7 +73,7 @@ inefficient and bug-prone solutions that emphasize digest cycles or queued liste
 
 ---
 
-Gooey avoids many common pitfalls of data synchronization by combining the following traits, patterns, and philosophies:
+Gooey plans to avoid many common pitfalls of data synchronization by combining the following traits, patterns, and philosophies:
 
 * Publish / Subscribe as primary synchronization mechanism
 * Hierarchical acyclic relationships between `Services`
