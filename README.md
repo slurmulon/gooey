@@ -9,7 +9,7 @@ facing complex SPAs.
 
 Gooey aims to ease the management of complex cross-stack components by making the task more centralized, pragmatic, and responsive.
 
-## Problem
+## Use Case
 
 Suppose you are designing an online portal for a company that finances renewable energy systems.
 You might represent your model components as a composition hierarchy:
@@ -52,9 +52,9 @@ inefficient and bug-prone solutions that emphasize dirty-checking.
 Gooey loosly follows the [Composite Pattern](https://en.wikipedia.org/wiki/Composite_pattern) and represents data components as canonical `Services` that
 can subscribe and publish data.
 
-`Services` have a 1:1 relationship with an optional parent Service and a 1:N relationship with optional child `Services`.
+`Services` have a 1:1 relationship with an optional parent `Service` and a 1:N relationship with optional child `Services`.
 
-These relationships naturally establish a tree data structure that can scale to support any number of `Services`:
+These relationships naturally establish a tree structure that can scale to support any number of `Services`:
 
 
                 (?) Parent Service
@@ -69,7 +69,7 @@ These relationships naturally establish a tree data structure that can scale to 
 
 
 `Services` that form this tree can publish data to each other bi-direciontally. Gooey supports several
-traversal patterns for data publication but performs breadth-first down by default.
+traversal patterns for data publication but performs breadth-first up/down by default.
 
 Because `Services` can communicate with related services bi-direciontally, they can be extended to support the components
 of a modern SPA:
