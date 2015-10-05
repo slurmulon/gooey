@@ -29,7 +29,7 @@ This gap in state and shift in responsibility makes it possible for the client t
 An alternative is to integrate with more monolithic responses from resources that are typically pushing the boundaries of their scope, which of course isn't great because it reminds us of the painful age of page refreshes.
 Another approach is to reflect and duplicate the domain model present in the API, but this isn't very maintainable and doesn't address the root of the problem.
 
-Allowing client-side components to interact with each other via publish / subscribe messaging enables them to synchronize their state safely and efficiently.
+Allowing client-side components to interact with each other via publish / subscribe messaging enables them to synchronize their state flexibly and efficiently.
 As an effect, complex client-side components can more easily interact and synchronize with their API resource counterparts.
 
 ### Example
@@ -129,11 +129,9 @@ However, this design is out of the scope of Gooey core and will be in a module o
 
 > $ npm install
 
-> $ gulp install
-
 ## Testing
 
-> $ gulp test
+> $ npm test
 
 ## Contributing
 
