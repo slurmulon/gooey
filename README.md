@@ -77,7 +77,7 @@ Gooey avoids many common pitfalls of data synchronization by combining the follo
 * Publish / Subscribe as primary synchronization mechanism
 * Hierarchical acyclic relationships between `Services`
 * Bi-directional data traversals (synchronous and asynchronous)
-* Allow decoupled communication between `Services` via pattern-matched events
+* Allow decoupled communication between `Services` via pattern-matched topics
 * `Services` are canonical
 * `Services` are proxies (data can be safely mutated by a `Service` before being passed on)
 * `Promises` everywhere
@@ -86,7 +86,7 @@ I will ellaborate more on the benefits of this combination with "proofs" and exa
 
 ## Architecture
 
-Gooey loosly follows the [Composite Pattern](https://en.wikipedia.org/wiki/Composite_pattern) and represents data components as canonical `Services` that
+Gooey is [topic-based](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern#Message_filtering) and loosly follows the [Composite Pattern](https://en.wikipedia.org/wiki/Composite_pattern) and represents data components as canonical `Services` that
 can subscribe and publish data.
 
 `Services` have a 1:1 relationship with an optional parent `Service` and a 1:N relationship with optional child `Services`.
