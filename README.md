@@ -2,7 +2,7 @@
 
 > PubSub data synchronization solution for ES6 Single Page Applications
 
-Single Page Applications (SPAs) have a dynamic context of components that continually changes based on a user's interactions with the system.
+Single Page Applications (SPAs) contain a context of mutli-layer components that continually changes based on a user's interactions with the system.
 
 Synchronizing the data between the components and layers of this dynamic context is one of the greatest challenges
 facing complex SPAs.
