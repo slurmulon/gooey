@@ -1,16 +1,38 @@
-# Gooey
+# :cloud: Gooey
 
 > PubSub data synchronization solution for ES6 Single Page Applications
 
-Put abstractly, a Single Page Application (SPA) is based on a dynamic multi-layered context of components that continually changes based on user interactions with the system.
-The interactions between these components and the layers between them often span networks (for instance, your Rest API and Client app) and typically become more complex over time as the application grows.
+## Problem
 
-Synchronizing the data between the components and layers of this dynamic context is, in my opinion, one of the greatest challenges
-facing large / complex SPAs.
+Single Page Applications (SPAs) enable incredibly responsive user experiences on the web by loading an application once and then dynamically updating
+the state of the client application via JavaScript and asynchronous HTTP requests.
 
-Gooey aims to ease the management of complex multi-layer components by iscolating and refining the imperative patterns into a single library.
+SPAs are innovative and play an integral role in slick modern web experiences, but the engineers of these applications are often faced with challenges regarding state.
+I've described the issues as I see them in both abstract and concrete terms.
 
-## Why...
+### Abstract
+
+SPAs have a dynamic context of multi-layered components that continually changes based on user interactions with the system.
+The states and interactions between these components and their layers often span domains and typically become more complex as an application grows.
+
+Elegantly synchronizing the data / state between the components and layers of this dynamic context is, in my opinion, one of the greatest challenges
+facing SPAs.
+
+Gooey aims to ease the management of complex multi-layer component states by iscolating, refining and consolidating the imperative patterns into a single library.
+
+### Concrete
+
+SPAs typically consume Restful HTTP APIs. HTTP APIs are stateless and SPA clients are stateful, introducing an interesting conflict. 
+For example, Restful HTTP APIs encourage granular updates to resource entities but force clients to handle updates to other entities in the client (and sometimes in the API) that are partially or even direclty related to them.
+This gap in state and shift in responsibility makes it possible for the client to have one representation of an entity and the API another.
+
+An alternative is to integrate with more monolothic responses from resources that are typically pushing the boundaries of their scope, which of course isn't great because it reminds us of the painful age of page refreshes.
+Another approach is to reflect and duplicate the domain model present in the API, but this isn't very maintainable and doesn't address the root of the problem.
+
+Allowing client-side components to interact with each other via publish / subscribe messaging enables them to synchronize their state safely and efficiently.
+As an effect, complex client-side components can more easily interact and synchronize with their API resource counterparts.
+
+### Example
 
 Suppose you are designing an online portal for a company that finances renewable energy systems.
 You might represent your model components as a composition hierarchy:
