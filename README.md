@@ -67,7 +67,7 @@ The following is a non-exhaustive list of designs that attempt to alleviate the 
       - Low maintainability
       - Duplication of business logic
 
- - Allow Restful API resources to provide both granular and verbose responses, common in HATEOS web apps
+ - Allow Restful API resources to provide both granular and verbose responses
 
    * Pros
       - Optimizes request size and number
