@@ -7,12 +7,7 @@
 
 var gooey = require('gooey')
 
-var user = gooey
-  .service('user', function(model) { // valid args: model, http, rest, dom
-    model.banned = () => { model.name === 'Broseph' }
-
-    return model
-  })
+var user = gooey.Service('user')
 
 // Basic usage
 
