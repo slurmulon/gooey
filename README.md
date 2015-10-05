@@ -86,7 +86,7 @@ I will ellaborate more on the benefits of this combination with "proofs" and exa
 
 ## Architecture
 
-Gooey is loosly follows the [Composite Pattern](https://en.wikipedia.org/wiki/Composite_pattern) and represents data components as canonical `Services` that
+Gooey loosly follows the [Composite Pattern](https://en.wikipedia.org/wiki/Composite_pattern) and represents data components as canonical `Services` that
 can subscribe and publish data via [topic-based](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern#Message_filtering) messsages.
 
 `Services` have a 1:1 relationship with an optional parent `Service` and a 1:N relationship with optional child `Services`.
