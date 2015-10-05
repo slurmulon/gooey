@@ -185,3 +185,4 @@ Gooey is still in its very early stages. Please feel free to message [me@madhax.
 - [ ] Concurrent traversals
 - [ ] Sibling collisions (Up direction)
 - [ ] Composite/Nestable Services
+- [ ] Support [queryl](https://github.com/issuetrackapp/queryl)
