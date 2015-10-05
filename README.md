@@ -2,8 +2,8 @@
 
 > PubSub data synchronization solution for ES6 Single Page Applications
 
-Put abstractly, Single Page Applications (SPAs) are based on a dynamic multi-layered context of components that continually changes based on user interactions with the system.
-The interactions between these components and the layers betwen often span networks (for instance, your Rest API and Client app) and typically become more complex over time as the application grows.
+Put abstractly, a Single Page Application (SPA) is based on a dynamic multi-layered context of components that continually changes based on user interactions with the system.
+The interactions between these components and the layers between them often span networks (for instance, your Rest API and Client app) and typically become more complex over time as the application grows.
 
 Synchronizing the data between the components and layers of this dynamic context is, in my opinion, one of the greatest challenges
 facing complex SPAs.
@@ -50,7 +50,7 @@ inefficient and bug-prone solutions that emphasize digest cycles or queued liste
 
 ---
 
-Gooey avoids the common pitfalls of data synchronization by combining the following traits, patterns, and philosophies:
+Gooey avoids many common pitfalls of data synchronization by combining the following traits, patterns, and philosophies:
 
 * Publish / Subscribe as primary synchronization mechanism
 * Hierarchical acyclic relationships betwen Services
@@ -59,6 +59,8 @@ Gooey avoids the common pitfalls of data synchronization by combining the follow
 * `Services` are canonical
 * `Services` are proxies (data can be safely mutated by a `Service` before being passed on)
 * `Promises` everywhere
+
+I will ellaborate more on the benefits of this combination with "proofs" and examples as I find the time :)
 
 ## Architecture
 
