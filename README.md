@@ -2,14 +2,15 @@
 
 > PubSub data synchronization solution for ES6 Single Page Applications
 
-Single Page Applications (SPAs) contain a context of mutli-layer components that continually changes based on a user's interactions with the system.
+Put abstractly, Single Page Applications (SPAs) are based on a dynamic multi-layered context of components that continually changes based on user interactions with the system.
+The interactions between these components and the layers betwen often span networks (for instance, your Rest API and Client app) and typically become more complex over time as the application grows.
 
-Synchronizing the data between the components and layers of this dynamic context is one of the greatest challenges
+Synchronizing the data between the components and layers of this dynamic context is, in my opinion, one of the greatest challenges
 facing complex SPAs.
 
-Gooey aims to ease the management of complex cross-stack components by making the task more centralized, pragmatic, and responsive.
+Gooey aims to ease the management of complex multi-layer components by iscolating and refining the imperative patterns into a single library.
 
-## Use Case
+## Why...
 
 Suppose you are designing an online portal for a company that finances renewable energy systems.
 You might represent your model components as a composition hierarchy:
@@ -45,9 +46,21 @@ What can make this simple yet dynamic context difficult to manage? (Examples rep
     * Example: If a Finance Product component experiences a 500 error, ensure that User can no longer access the Quote and, if possible, re-select a new Quote for the User.
 
 The mechanism of data synchronization and "binding" in modern JS frameworks is often re-invented and sometimes implemented with
-inefficient and bug-prone solutions that emphasize dirty-checking.
+inefficient and bug-prone solutions that emphasize digest cycles or queued listeners.
 
-## Model
+---
+
+Gooey avoids the common pitfalls of data synchronization by combining the following traits, patterns, and philosophies:
+
+* Publish / Subscribe as primary synchronization mechanism
+* Hierarchical acyclic relationships betwen Services
+* Bi-directional data traversals (synchronous and asynchronous)
+* Allow decoupled communication between `Services` via pattern-matched events
+* `Services` are canonical
+* `Services` are proxies (data can be safely mutated by a `Service` before being passed on)
+* `Promises` everywhere
+
+## Architecture
 
 Gooey loosly follows the [Composite Pattern](https://en.wikipedia.org/wiki/Composite_pattern) and represents data components as canonical `Services` that
 can subscribe and publish data.
@@ -88,16 +101,6 @@ of a modern SPA:
 
 However, this design is out of the scope of Gooey core and will be in a module of its own.
 
-### Summary
-
-* Publish / Subscribe
-* Hierarchical
-* Bi-directional
-* Acyclic
-* Canonical instance
-* Pattern-matched events
-* Nodes as proxies (data can be safely mutated before being delegated)
-
 ## Installation
 
 > $ npm install
@@ -119,3 +122,4 @@ Gooey is still in its very early stages. Please feel free to message [me@madhax.
 - [ ] Breadth-first Up Traversal
 - [ ] Concurrent traversals
 - [ ] Sibling collisions (Up direction)
+- [ ] Composite/Nestable Services
