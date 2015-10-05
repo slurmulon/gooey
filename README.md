@@ -2,6 +2,21 @@
 
 > PubSub data synchronization solution for ES6 Single Page Applications
 
+## tl;dr
+
+Gooey intends to alleviate data synchronization challenges in Single Page Applications by combining the following traits, patterns, and philosophies:
+
+* Publish / Subscribe as primary data synchronization mechanism
+* Bi-directional data traversals (synchronous and asynchronous)
+* Hierarchical acyclic relationships between `Services`
+* Allow decoupled communication between `Services` via pattern-matched topics
+* `Services` are canonical
+* `Services` are proxies (data can be safely mutated by a `Service` before being passed on)
+* `Promises` everywhere
+
+I will ellaborate more on the benefits of this combination with "proofs" and examples as I find the time :)
+Until then, my evaluation of SPA design challenges provides some solid insights, so please give it a read!
+
 ## Problem
 
 Single Page Applications (SPAs) enable incredibly responsive user experiences by loading a web application once and then dynamically updating
@@ -22,13 +37,50 @@ Gooey aims to ease the management of complex multi-layer component states by isc
 
 ### Concrete
 
-SPAs typically consume Restful HTTP APIs. HTTP APIs are stateless and SPA clients are stateful, introducing an interesting conflict.
+SPAs typically consume Restful HTTP APIs. HTTP APIs are stateless and SPA clients are stateful, introducing an obvious and interesting conflict.
 The client is responsible for ensuring that its own representations of API entity states are accurate, often involving the nested states of sub-entities as well.
-This gap in state and shift in responsibility makes it possible for the client to have one representation of an entity and the API another.
+This gap in state makes it possible for the client to have one representation of an entity and the API another.
 
-One solution to the state problem is to integrate with more monolithic responses from resources that are typically pushing the boundaries of their scope, which of course isn't great because it reminds us of the painful age of page refreshes.
-Another approach is to closely reflect the domain model of the API into the client, but this isn't very maintainable because it encourages duplication. It also doesn't address the root of the problem.
-Lastly you can allow API resources to provide both granular and verbose responses, common in HATEOS web apps. However this can break down quickly when resource hierarchies become large and complex because it is difficult for routing systems to cleanly support nested querying on resource entities (e.g. full response provides entities A through D, but I only want B and C).
+The following is a non-exhaustive list of designs that attempt to alleviate the problem but seem to fall short because they do not address the root issue:
+
+ - Monolithic resource entities and responses
+
+   * Pros
+      - Fast (at first)
+      - Cheap (at first)
+   * Cons
+      - Bloated resources
+      - God objects
+      - Highly redundant (no granular sub-entity updates)
+      - Violates encapsulation
+      - Duplication of business logic
+      - Hard to test
+
+ - Closely reflect the domain model of the Restful API in the client
+
+   * Pros
+      - Consistent domain model
+      - Clean code (at first)
+      - Easy to test and validate API integrations
+   * Cons
+      - Expensive
+      - Low maintainability
+      - Duplication of business logic
+
+ - Allow Restful API resources to provide both granular and verbose responses, common in HATEOS web apps
+
+   * Pros
+      - Optimizes request size and number
+      - Low to zero redundancy
+      - Generally complements [HATEOS](https://en.wikipedia.org/wiki/HATEOAS)
+   * Cons
+      - Complicates client and API entity models with compsition combinations (e.g. A, B, C, AB, AC, BC, ABC)
+      - Nested sub-entities are difficult to access and work with in API routing systems, Restful or not. To my knowledge no URL standards exist for this.
+      - Fails to address client issue of cleanly managing responses with complex entity compositions
+      - Can be hard to test
+
+On a semi-related note, the mechanism of data synchronization and "binding" in modern JS frameworks is often re-invented and sometimes implemented with
+inefficient and bug-prone solutions that emphasize digest cycles or queued listeners.
 
 Allowing client-side components to interact with each other via publish / subscribe messaging enables them to synchronize their state flexibly and efficiently.
 As an effect, complex client-side components can more easily interact and synchronize with their API resource counterparts.
@@ -67,23 +119,6 @@ What can make this simple yet dynamic context difficult to manage? (Examples rep
     * Example: If a System reaches a "finance ready" state, the Quote now needs Documents which the User can sign. User can't interact with other parts of the application until they sign or reject the Documents.
  - Difficult to synchronize effects and limitations of errors between relevant components
     * Example: If a Finance Product component experiences a 500 error, ensure that User can no longer access the Quote and, if possible, re-select a new Quote for the User.
-
-The mechanism of data synchronization and "binding" in modern JS frameworks is often re-invented and sometimes implemented with
-inefficient and bug-prone solutions that emphasize digest cycles or queued listeners.
-
----
-
-Gooey plans to avoid many common pitfalls of data synchronization by combining the following traits, patterns, and philosophies:
-
-* Publish / Subscribe as primary synchronization mechanism
-* Hierarchical acyclic relationships between `Services`
-* Bi-directional data traversals (synchronous and asynchronous)
-* Allow decoupled communication between `Services` via pattern-matched topics
-* `Services` are canonical
-* `Services` are proxies (data can be safely mutated by a `Service` before being passed on)
-* `Promises` everywhere
-
-I will ellaborate more on the benefits of this combination with "proofs" and examples as I find the time :)
 
 ## Architecture
 
