@@ -134,7 +134,7 @@ describe('Service', () => {
         })
 
         const testScrip = child.subscribe('$.find', data => {
-          data[0].foundBy.push('child') // FIXME - data should not be an array, subscribe needs to just be a Promise
+          data.foundBy.push('child')
           return data
         })
 
@@ -158,6 +158,18 @@ describe('Service', () => {
         parentService.publish(testData)
 
         testData.foundBy.should.be.empty
+      })
+
+      xit('should ensure that subscription matches are performed passively',  () => {
+        // TODO
+      })
+
+      xit('should filter out subscription matches that are untouched or `null`',  () => {
+        // TODO
+      })
+
+      xit('should properly synchronize identical  matching subscription responses (same pattern, same service', () => {
+        // TODO
       })
     })
 
@@ -199,7 +211,7 @@ describe('Service', () => {
       testData.should.have.ownProperty('b')
     })
 
-    xit('should be able to synchronize identical publish events that are being executed concurrently', () => {
+    xit('should be able to properly synchronize identical publish events that are being executed concurrently', () => {
       // TODO
     })
 
@@ -216,21 +228,21 @@ describe('Service', () => {
     })
 
     it('should create a subscription and return it', () => {
-      let gotIt     = false
+      let works     = false
       const service = new gooey.Service('foo')
       const scrip   = service.subscribe('$', () => {
-        gotIt = true
+        works = true
       })
 
       service.update({any: 'thing'})
 
-      gotIt.should.be.true
+      works.should.be.true
     })
 
     it('should register the subscription with the Service upon creation', () => {
       const service = new gooey.Service('foo')
       const scrip   = service.subscribe('$', () => {
-        gotIt = true
+        works = true
       })
 
       service.subscriptions.should.containEql(scrip)
@@ -321,35 +333,12 @@ describe('Service', () => {
       service.matches.should.type('function').be.true
     })
 
-    it('should only perform jsonpath matching if the configuration permits (false)', () => {
-      const service     = new gooey.service({name: 'foo', config: {data: {matching: {queries: false} }}})
-      const passiveData = {ignore: true}
-      const results     = []
+    it('should invoke `matches` on the provided Subscription', () => {
+      const testData  = {foo: 'bar'}
+      const service   = new gooey.service({name: 'foo'})
+      const scripStub = {matches: (data) => [data]}
 
-      service.subscribe('$.ignore', data => { results.push(data) })
-      service.publish(passiveData)
-
-      results.should.not.containEql(passiveData)
-    })
-
-    it('should only perform jsonpath matching if the configuration permits (true)', () => {
-      const service    = new gooey.service({name: 'foo', config: {data: {matching: {queries: true} }}})
-      const activeData = {find: true}
-      const results    = []
-
-      service.subscribe('$.find', data => { results.push(data) })
-      service.publish(activeData)
-
-      results.should.containEql(activeData)
-    })
-
-    it('should return jsonpath matches from all relevant subscribers', () => {
-      const activeData = {find: 'bar'}
-      const service    = new gooey.service({name: 'foo'})
-      const scription  = service.subscribe('$.find')
-      const matches    = service.matches(activeData, scription)
-
-      Array.from(matches).should.eql(['bar'])
+      gooey.util.is(service.matches(testData, scripStub), [testData]).should.be.true
     })
   })
 
@@ -408,8 +397,16 @@ describe('Service', () => {
       service.relateToAll.should.type('function').be.true
     })
 
-    // TODO
-    it('should relate each provided service as a child')
+    it('should relate each provided service as a parent', () => {
+      const parent = new gooey.Service('parent')
+      const child1 = new gooey.Service('child1')
+      const child2 = new gooey.Service('child2')
+
+      parent.relateToAll([child1, child2])
+
+      child1.parent.should.equal(parent)
+      child2.parent.should.equal(parent)
+    })
   })
 
   describe('isRoot', () => {
@@ -468,6 +465,8 @@ describe('Service', () => {
     it('should be a defined method', () => {
       gooey.Service.findRoots.should.type('function').be.true
     })
+
+    // TODO
   })
 
   describe('findLeafs', () => {
@@ -495,7 +494,6 @@ describe('Service', () => {
       child1.depth().should.equal(1)
       child2.depth().should.equal(1)
       childSub1.depth().should.equal(2)
-      // })
     })
 
     describe('siblings', () => {
@@ -550,6 +548,57 @@ describe('Service', () => {
       const serviceC = new gooey.service({name: 'C', parent: serviceA})
 
       new gooey.Service.cycleExists().should.be.false
+    })
+  })
+
+})
+
+describe('Subscription', () => {
+
+  beforeEach(gooey.clear)
+
+  describe('constructor', () => {
+    it('should be a defined method', () => {
+      gooey.Subscription.constructor.should.type('function').be.true
+    })
+  })
+
+  describe('matches', () => {
+    it('should be a defined method', () => {
+      const service = new gooey.Service('foo')
+
+      service.matches.should.type('function').be.true
+    })
+
+    it('should only perform jsonpath matching if the configuration permits (false)', () => {
+      const service     = new gooey.service({name: 'foo', config: {data: {matching: {queries: false} }}})
+      const passiveData = {ignore: true}
+      const results     = []
+
+      service.subscribe('$.ignore', data => { results.push(data) })
+      service.publish(passiveData)
+
+      results.should.not.containEql(passiveData)
+    })
+
+    it('should only perform jsonpath matching if the configuration permits (true)', () => {
+      const service    = new gooey.service({name: 'foo', config: {data: {matching: {queries: true} }}})
+      const activeData = {find: true}
+      const results    = []
+
+      service.subscribe('$.find', data => { results.push(data) })
+      service.publish(activeData)
+
+      results.should.containEql(activeData)
+    })
+
+    it('should return jsonpath matches from all relevant subscribers', () => {
+      const activeData = {find: 'bar'}
+      const service    = new gooey.service({name: 'foo'})
+      const scription  = service.subscribe('$.find')
+      const matches    = service.matches(activeData, scription)
+
+      Array.from(matches).should.eql(['bar'])
     })
   })
 

@@ -9,6 +9,8 @@
 import jsonPath from 'jsonpath'
 import _ from 'lodash'
 
+import * as _util from './util'
+
 /**
  * Flat map of all registered services, indexed by name
  */
@@ -78,21 +80,31 @@ export class Service {
    * Traverses service tree via a conflict-free path and matches subscribers against the published data
    * 
    * @param {Object} data
-   * @param {Function} success
-   * @param {Function} error
-   * @param {String} traversal
-   * @param {String} direction
-   * @returns {Promise} deferred service tree traversal
+   * @param {?Function} success
+   * @param {?Function} error
+   * @param {?String} traversal
+   * @param {?String} direction
+   * @returns {Promise} deferred service tree traversal(s)
    */
   publish(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'breadth', direction: String = 'down'): Promise {
     // ensure data is pure
     data = _.clone(data, true)
     
-    // subscribers who match the current published data
-    const scrips = this.subscriptions.filter(scrip => !!this.matches(data, scrip).size)
+    // process data against matching subscribers and filter for untouched, null, and dupes
+    const matches = [... new Set(this.subscriptions
+      .map(scrip => scrip.process(data, false))
+      .filter(match => match !== null && match !== data))]
 
-    // current service node. proxy data if this service's data update matches any subscriptions
-    const result = scrips.length ? scrips.map(scrip => scrip.on(data)) : data
+    // when identical subscriptions modify the data (conflict), intercept the original
+    // publication and substitute it with a new promised publication for each subscription match
+    if (matches.length > 1) {
+      return Promise.all(
+        matches.map(match => this.publish(match, success, error, traversal, direction))
+      )
+    }
+
+    // final result is either converged, conflict-resolved subscriber match or cloned source data 
+    const result = matches[0] || data
 
     // traverse service node tree and publish on each "next" node
     return this.traverse(
@@ -206,9 +218,9 @@ export class Service {
    * Recursively traverses service tree via provided `next` function
    * 
    * Supported traversals:
-   * - [~] Depth-first Up
+   * - [ ] Depth-first Up (in prog.)
    * - [X] Depth-first Down
-   * - [~] Breadth-first Up
+   * - [ ] Breadth-first Up (in prog.)
    * - [X] Breadth-first Down
    * - [ ] Async Local {direc}
    * 
@@ -271,8 +283,8 @@ export class Service {
   relateTo(child: Service): Service {
     this.children.push(child)
 
-    if (Service.cycleExists()) { // TODO - meh, clean up
-      this.children.pop()
+    if (Service.cycleExists()) {
+      this.children.pop() // FIXME - bleh, needs improvement
     }
 
     return this
@@ -448,7 +460,7 @@ export class Subscription {
    * 
    * @param {Service} service
    * @param {String} path topic/pattern to react to (* is wildcard)
-   * @param {Function} on functionality to be triggered on match
+   * @param {Function} on functionality to be triggered on successful match
    */
   constructor(service: Service, path: String, on: Function) {
     this.service = service
@@ -488,12 +500,11 @@ export class Subscription {
    * the subscription to mutate and return the data.
    * 
    * @param {Object} data
-   * @param {?Function} success
-   * @param {?Function} error
+   * @param {Boolean} passive return either untouched data on mismatch (true) or null on mismatch (false)
    * @returns {Object} subscription modified data
    */
-  process(data): Object {
-    return !!this.matches(data).size ? this.on(data) : data
+  process(data, passive: Boolean = true): Object {
+    return !!this.matches(data).size ? this.on(data) : (passive ? data : null)
   }
 
   /**
@@ -534,4 +545,9 @@ export var services = _services
 /**
  * Detaches services from module
  */
-export var clear = () => { _services = new Set() }
+export const clear = () => { _services = new Set() }
+
+/**
+ * Convenience reference to utility module
+ */
+ export const util = _util
