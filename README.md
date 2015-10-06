@@ -125,7 +125,7 @@ What can make this simple yet dynamic context difficult to manage? (Examples may
 
 ## Architecture
 
-Gooey loosly follows the [Composite Pattern](https://en.wikipedia.org/wiki/Composite_pattern) and represents data components as canonical `Services` that
+Gooey loosly follows the [composite pattern](https://en.wikipedia.org/wiki/Composite_pattern) and represents data components as canonical `Services` that
 can subscribe and publish data via [topic-based](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern#Message_filtering) messsages.
 
 `Services` have a 1:1 relationship with an optional parent `Service` and a 1:N relationship with optional child `Services`.
@@ -176,7 +176,7 @@ However, this design is out of the scope of Gooey core and will be in a module o
 
 Gooey is still in its very early stages. Please feel free to message [me@madhax.io](mailto:me@madhax.io) if you are interested in contributing!
 
-## TODO
+## Future Features
 
 - [X] Depth-first Down Traversal
 - [ ] Depth-first Up Traversal (in prog.)
@@ -186,3 +186,9 @@ Gooey is still in its very early stages. Please feel free to message [me@madhax.
 - [ ] Sibling collisions (Up direction)
 - [ ] Composite/Nestable Services
 - [ ] Support [queryl](https://github.com/issuetrackapp/queryl)
+
+## Future Modules
+
+- [ ] gooey.http
+- [ ] gooey.dom
+- [ ] gooey.debug
