@@ -1,4 +1,4 @@
-# :cloud: Gooey
+# :seedling: Gooey
 
 > PubSub data synchronization solution for ES6 Single Page Applications
 
