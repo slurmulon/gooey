@@ -484,6 +484,19 @@ export class Subscription {
   }
 
   /**
+   * Determines if data matches the subscription and, if so, allows
+   * the subscription to mutate and return the data.
+   * 
+   * @param {Object} data
+   * @param {?Function} success
+   * @param {?Function} error
+   * @returns {Object} subscription modified data
+   */
+  process(data): Object {
+    return !!this.matches(data).size ? this.on(data) : data
+  }
+
+  /**
    * Unsubscribes a subscription from its service and mark it as inactive.
    * Subscription will not react to any messages from service until activated again.
    */
