@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 //  ▄▄ •             ▄▄▄ . ▄· ▄▌
 // ▐█ ▀ ▪▪     ▪     ▀▄.▀·▐█▪██▌
@@ -9,10 +9,14 @@
 import jsonPath from 'jsonpath'
 import _ from 'lodash'
 
-// flat object of all registered services by name
+/**
+ * Flat map of all registered services, indexed by name
+ */
 var _services = {}
 
-// default service configuration
+/**
+ * Default service configuration object
+ */
 const _config = {
   strict: true,
 
@@ -28,31 +32,38 @@ const _config = {
         falsy: true
       }
     }
-  },
-
-  traversals: {
-
   }
 }
 
-// supported flavors of service tree traversals
+/**
+ * Supported flavors of service tree traversals
+ */
 const traversals = ['depth', 'breadth', 'async_global', 'async_local']
 
-// a canonical, heiarchical source of data that can delegate updates bi-directionally
+/**
+ * A canonical, hierarchical, and composable data source that can publish and receive updates bi-directionally with other services
+ */
 export class Service {
 
+  /**
+   * @param {String} name
+   * @param {?Function} model
+   * @param {?Service} parent
+   * @param {?Array} children
+   * @param {?Object} config
+   */
   constructor(name: String, model?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
     if (_.isUndefined(name) || Service.isRegistered(name)) {
       throw `Services must have unique names: ${name}`
     }
 
-    this.name          = name
-    this.model         = model
-    this.parent        = parent ? parent.relateTo(this) : null
-    this.children      = this.relateToAll(children)
-    this.state         = {}
+    this.name = name
+    this.model = model
+    this.state = {}
+    this.parent = parent ? parent.relateTo(this) : null
+    this.children = this.relateToAll(children)
     this.subscriptions = []
-    this.config        = config
+    this.config = config
 
     _services[name] = this
 
@@ -61,7 +72,15 @@ export class Service {
     }
   }
 
-  // traverses service tree via a conflict-free path and matches subscribers against the published data
+  /**
+   * Traverses service tree via a conflict-free path and matches subscribers against the published data
+   * 
+   * @param {Object} data
+   * @param {Function} success
+   * @param {Function} error
+   * @param {String} traversal
+   * @param {String} direction
+   */
   publish(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'breadth', direction: String = 'down'): Promise {
     // ensure data is pure
     data = _.clone(data, true)
@@ -81,28 +100,51 @@ export class Service {
     )
   }
 
-  // creates and registers a publish subscription against a jsonpath pattern
+  /**
+   * Creates and registers a publish subscription with the Service
+   * 
+   * @param {String} path
+   * @param {Function} on
+   */
   subscribe(path: String = '$', on: Function): Subscription {
-    const scrip = new Subscription(this.name, path, on)
+    const scrip = new Subscription(this, path, on)
 
     this.subscriptions.push(scrip)
 
     return scrip
   }
 
-  // ends a publish subscription
+  /**
+   * Ends a publish subscription with the Service
+   * 
+   * @param {Subscription} scrip
+   */
   unsubscribe(scrip: Subscription) {
     this.subscriptions.splice(this.subscriptions.indexOf(scrip), 1)
   }
 
-  // updates the Service's canonical data source with new data and publishs the change
+  /**
+   * Updates the Service's canonical data source with new data and publishs the change
+   * 
+   * @param {Object} data
+   * @param {?Function} success
+   * @param {?Function} error
+   * @returns {Promise}
+   */
   update(data, success?: Function, error?: Function): Promise {
     this.data = data
 
     return this.publish(data, success, error)
   }
 
-  // merges and updates the Service's canonical date source with a new data object and publishs the change
+  /**
+   * Merges and updates the Service's canonical date source with a new data object and publishs the change
+   * 
+   * @param {Object} data
+   * @param {?Function} success
+   * @param {?Function} error
+   * @returns {Promise}
+   */
   merge(data: Object, success?: Function, error?: Function): Promise {
     if (_.isObject(data)) {
       _.merge(this.data, data)
@@ -111,41 +153,71 @@ export class Service {
     return this.update(this.data, success, error)
   }
 
-  // alias for subscribe
+  /**
+   * Alias for subscribe
+   * 
+   * @param {String} path
+   * @param {Function} on
+   * @returns {Subscription}
+   */
   on(path: String, on: Function): Subscription {
     return this.subscribe(path, on)
   }
 
-  // alias for update
+  /**
+   * Alias for update
+   * 
+   * @param {Object} data
+   * @param {?Function} success
+   * @param {?Function} error
+   * @returns {Promise}
+   */
   use(data, success?: Function, error?: Function): Promise {
     return this.update(data, success, error)
   }
 
-  // alias for upsert
-  up(data: Object, success?: Function, error?: Function): Promise {
-    return upsert(data, success, error)
+  /**
+   * Alias for merge
+   * 
+   * @param {Object} data
+   * @param {?Function} success
+   * @param {?Function} error
+   * @returns {Promise}
+   */
+  up(data, success?: Function, error?: Function): Promise {
+    return merge(data, success, error)
   }
 
-  // determines if a subscription path matches data
+  /**
+   * Determines sub-of data that matches subscription path/pattern
+   * 
+   * @param {Object} data
+   * @param {?Function} success
+   * @param {?Function} error
+   * @returns {Set} data matching subscription
+   */
   matches(data, scrip: Subscription): Set {
-    const matchSet = new Set()
-
-    if (this.config.data.matching.queries) { // TODO - determine if jsonpath query
-      const jpMatches = jsonPath.query(data, scrip.path)
-
-      if (jpMatches && !!jpMatches.length) {
-        matchSet.add(...jpMatches)
-      }
-    }
-
-    if (data === scrip.pattern && !matchSet.contains(data)) {
-      matchSet.add(data)
-    }
-
-    return matchSet
+    return scrip.matches(data)
   }
 
-  // recursively traverses service tree via provided `next` functgion
+  /**
+   * Recursively traverses service tree via provided `next` function
+   * 
+   * Supported traversals:
+   * - [~] Depth-first Up
+   * - [X] Depth-first Down
+   * - [~] Breadth-first Up
+   * - [X] Breadth-first Down
+   * - [ ] Async Local {direc}
+   * 
+   * @param {Object} data
+   * @param {String} traversal supported values defined by gooey.traversals
+   * @param {String} direction up or down
+   * @param {Function} success
+   * @param {Function} error
+   * @param {Function} next
+   * @returns {Promise}
+   */
   traverse(data, traversal: String, direction: String, success: Function, error: Function, next: Function): Promise {
     if (!traversals.find(t => t === traversal)) {
       throw `Failed to traverse, invalid traversal type: ${traversal}`
@@ -185,25 +257,50 @@ export class Service {
     })
   }
 
-  //  TODO - validate for cyclic dependencies
-  // establishes service as a parent to the provided child service
+  /**
+   * Establishes strong acyclic child relationship with provided service.
+   * Child services inherit publications from their parent.
+   * The opposite is also supported via traversals.
+   * Silently fails if a cyclic relationship is proposed.
+   * 
+   * @param {Service} child service to relate to
+   * @returns {Service} modified service with new child relationship
+   */
   relateTo(child: Service): Service {
     this.children.push(child)
+
+    if (Service.cycleExists()) { // TODO - meh, clean up
+      this.children.pop()
+    }
 
     return this
   }
 
-  // establishes service as a parent to each provided child service
+  /**
+   * Establishes service as parent to each provided child service.
+   * Child services inherit publications from their parent.
+   * The opposite is also supported via traversals.
+   * 
+   * @param {Array} children services to relate to
+   * @returns {Array} modified children services with new parent relationship
+   */
   relateToAll(children: Array): Array {
     return children.map(c => {
       c.parent = this
+
+      // this.relateTo(c) // TODO/FIXME
 
       return c
     })
   }
 
-  // determines a service's depth in the service tree
-  depth(node = this): Int {
+  /**
+   * Determines a provided service's depth in the service tree
+   * 
+   * @param {Service} node relative/starting service
+   * @returns {Int}
+   */
+  depth(node: Service = this): Int {
     let nodeDepth = 0
 
     while (node.parent) {
@@ -214,39 +311,69 @@ export class Service {
     return nodeDepth
   }
 
-  // determines all siblings of the service
-  siblings(node = this, global: Boolean = false) {
+  /**
+   * Searches for and returns all siblings of the provided service
+   * 
+   * @param {Service} node relative/starting service
+   * @param {Boolean} global return siblings across disjoint trees (true) or siblings in connected hierarchy (false - UNSUPPORTED)
+   * @returns {Int}
+   */
+  siblings(node = this, global: Boolean = false): Array {
     const roots = Service.findRoots()
     const depth = node.depth()
 
     return Service.findAtDepth(depth, roots).filter(svc => svc !== node)
   }
 
-  // determines if the service is a root node in the service tree
+  /**
+   * Determines if the service is a root node in the local service tree
+   * 
+   * @returns {Boolean}
+   */
   isRoot(): Boolean {
     return !this.parent
   }
 
-  // determines if the service is a leaf node in the service tree
+  /**
+   * Determines if the service is a leaf node in the local service tree
+   * 
+   * @returns {Boolean}
+   */
   isLeaf(): Boolean {
     return !this.children
   }
 
-  // determines all root node Services in the tree
+  /**
+   * Determines and returns all root node services in the global service tree
+   * 
+   * @param {Array} services service tree to search through (default is global)
+   * @returns {Array}
+   */
   static findRoots(services: Array = _services): Array {
     return _(services).values().filter(svc =>
       (svc instanceof Service) && svc.isRoot()
     ).value()
   }
 
-  // determines all leaf node Services in the tree
+  /**
+   * Determines and returns all leaf node services in the global service tree
+   * 
+   * @param {Array} services service tree to search through (default is global)
+   * @returns {Array}
+   */
   static findLeafs(services: Array = _services): Array {
     return _(services).values().filter(svc =>
       (svc instanceof Service) && svc.isLeaf()
     ).value()
   }
 
-  // determines which nodes (out of the provided array) are at the given depth
+  /**
+   * Determines and returns the nodes (out of the provided service tree) at the target depth
+   * 
+   * @param {Int} targetDepth
+   * @param {Array} nodes service tree to search through (default is global)
+   * @returns {Array}
+   */
   static findAtDepth(targetDepth: Int, nodes: Array): Array {
     const found  = []
     let curDepth = 0
@@ -266,7 +393,12 @@ export class Service {
     return found
   }
 
-  // determines if a cyclic relationship exists anywhere in the service tree
+  /**
+   * Determines if a cyclic relationship exists anywhere in the provided service tree
+   * 
+   * @param {Array} services service tree to search through (default is global)
+   * @returns {Boolean}
+   */
   static cycleExists(services = _services): Boolean {
     const roots = Service.findRoots(services)
     const found = !_.isEmpty(roots) ? roots.map(r => r.name) : []
@@ -293,32 +425,83 @@ export class Service {
     return cyclic
   }
 
-  // determines if a service name is already registered in the tree
+  /**
+   * Determines if a service name is already registered in the global service tree
+   * 
+   * @returns {Boolean}
+   */
   static isRegistered(name: String): Boolean {
     return _.contains(Array.from(_services).map(s => s.name), name)
   }
 }
 
-export var service  = ({name, model, parent, children, config}) => new Service(name, model, parent, children, config) 
-export var services = _services
-export var clear    = () => { _services = new Set() }
-
-// TODO - may as well make this extend Promise
+// TODO - may as well make this extend Promise, "on" can be redundant
+/**
+ * A topic-based data matcher that reacts to a service's publications
+ */
 export class Subscription {
 
+  /**
+   * A topic-based data matcher that reacts to a service's publications
+   * 
+   * @param {Service} service
+   * @param {String} path topic/pattern to react to (* is wildcard)
+   * @param {Function} on functionality to be triggered on match
+   */
   constructor(service: Service, path: String, on: Function) {
     this.service = service
-    this.path    = path
-    this.on      = on
+    this.path = path
+    this.on = on
+    this.active = true
   }
 
+  /**
+   * Determines sub-of data that matches subscription path/pattern
+   * 
+   * @param   {Object}    data
+   * @param   {?Function} success
+   * @param   {?Function} error
+   * @returns {Set}       data matching subscription
+   */
+  matches(data): Set {
+    const matchSet = new Set()
+
+    if (this.active && this.service.config.data.matching.queries) { // FIXME - determine if jsonpath query via regex
+      const jpMatches = jsonPath.query(data, this.path)
+
+      if (jpMatches && !!jpMatches.length) {
+        matchSet.add(...jpMatches)
+      }
+    }
+
+    if (data === this.path && !matchSet.contains(data)) {
+      matchSet.add(data)
+    }
+
+    return matchSet
+  }
+
+  /**
+   * Unsubscribes a subscription from its service and mark it as inactive.
+   * Subscription will not react to any messages from service until activated again.
+   */
   end() {
     service.unsubscribe(this)
+    this.active = false
+  }
 
-    Object.freeze(this)
+  /**
+   * Activates the subscription, permitting it to react to topic-based messages
+   */
+  activate() {
+    this.active = true
   }
 
 }
+
+export var service  = ({name, model, parent, children, config}) => new Service(name, model, parent, children, config) 
+export var services = _services
+export var clear    = () => { _services = new Set() }
 
 // subscribe to all services and react to any data changes within them matching the provided hash
 // export function subscribe(hash: String, callback: Function)
