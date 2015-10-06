@@ -162,7 +162,7 @@ of a modern SPA:
     (?) View Service A         (?) View Service B
 
 
-However, this design is out of the scope of Gooey core and will be in a module of its own.
+However, this design is out of the scope of Gooey core and will be implemented its own module (`gooey.web`).
 
 ## Installation
 
@@ -184,11 +184,13 @@ Gooey is still in its very early stages. Please feel free to message [me@madhax.
 - [ ] Breadth-first Up Traversal
 - [ ] Concurrent traversals
 - [ ] Sibling collisions (Up direction)
-- [ ] Composite/Nestable Services
-- [ ] Support [queryl](https://github.com/issuetrackapp/queryl)
+- [ ] Composite/Nested Services
+- [ ] Support [queryl](http://bit.ly/1jbEyGz)
+- [ ] Integrate [Object.observer](http://mzl.la/1OXjS2Q) or [Proxy object shim](https://github.com/tvcutsem/harmony-reflect)
 
 ## Future Modules
 
-- [ ] gooey.net
-- [ ] gooey.dom
-- [ ] gooey.debug
+- [ ] `gooey.net`
+- [ ] `gooey.dom`
+- [ ] `gooey.debug`
+- [ ] `gooey.web` (dependent on `core`, `net`, `dom`, and `debug`)

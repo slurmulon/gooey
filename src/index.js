@@ -130,7 +130,7 @@ export class Service {
   }
 
   /**
-   * Ends a publish subscription with the Service
+   * Deregisters a subscription from the Service
    * 
    * @param {Subscription} scrip
    */
