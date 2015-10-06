@@ -460,10 +460,10 @@ export class Subscription {
   /**
    * Determines sub-of data that matches subscription path/pattern
    * 
-   * @param   {Object}    data
-   * @param   {?Function} success
-   * @param   {?Function} error
-   * @returns {Set}       data matching subscription
+   * @param {Object} data
+   * @param {?Function} success
+   * @param {?Function} error
+   * @returns {Set} data matching subscription
    */
   matches(data): Set {
     const matchSet = new Set()
@@ -501,16 +501,24 @@ export class Subscription {
 
 }
 
-export var service  = ({name, model, parent, children, config}) => new Service(name, model, parent, children, config) 
+/**
+ * Alternative POJO-style factory method for services (destructures object into arguments)
+ * 
+ * @param {String} name
+ * @param {?Function} model
+ * @param {?Service} parent
+ * @param {?Array} children
+ * @param {?Object} config
+ * @returns {Service}
+ */
+export var service = ({name, model, parent, children, config}) => new Service(name, model, parent, children, config)
+
+/**
+ * Exported flat map of module services - to be used with caution
+ */
 export var services = _services
-export var clear    = () => { _services = new Set() }
 
-// subscribe to all services and react to any data changes within them matching the provided hash
-// export function subscribe(hash: String, callback: Function)
-
-// publish a data change across all services (searches for roots, leafs, and orphans)
-// traversal: async_global
-// export function publish(path: String, data)
-
-// allows a gooey service tree to be defined througha a convenient meta-descriptive POJO
-// export function meta(meta: Object)
+/**
+ * Detaches services from module
+ */
+export var clear = () => { _services = new Set() }
