@@ -46,6 +46,8 @@ const traversals = ['depth', 'breadth', 'async_global', 'async_local']
 export class Service {
 
   /**
+   * Creates and registers a new gooey service with the current module
+   * 
    * @param {String} name
    * @param {?Function} model
    * @param {?Service} parent
@@ -80,6 +82,7 @@ export class Service {
    * @param {Function} error
    * @param {String} traversal
    * @param {String} direction
+   * @returns {Promise} deferred service tree traversal
    */
   publish(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'breadth', direction: String = 'down'): Promise {
     // ensure data is pure
@@ -189,12 +192,11 @@ export class Service {
   }
 
   /**
-   * Determines sub-of data that matches subscription path/pattern
+   * Determines set of data that matches the provided subscription's path/pattern
    * 
    * @param {Object} data
-   * @param {?Function} success
-   * @param {?Function} error
-   * @returns {Set} data matching subscription
+   * @param {Subscription} scrip
+   * @returns {Set}
    */
   matches(data, scrip: Subscription): Set {
     return scrip.matches(data)
@@ -315,10 +317,10 @@ export class Service {
    * Searches for and returns all siblings of the provided service
    * 
    * @param {Service} node relative/starting service
-   * @param {Boolean} global return siblings across disjoint trees (true) or siblings in connected hierarchy (false - UNSUPPORTED)
+   * @param {?Boolean} global return siblings across disjoint trees (true) or siblings in connected hierarchy (false - UNSUPPORTED)
    * @returns {Int}
    */
-  siblings(node = this, global: Boolean = false): Array {
+  siblings(node = this, global?: Boolean = false): Array {
     const roots = Service.findRoots()
     const depth = node.depth()
 
@@ -435,7 +437,7 @@ export class Service {
   }
 }
 
-// TODO - may as well make this extend Promise, "on" can be redundant
+// TODO - might want to just make this extend Promise, "on" can be redundant
 /**
  * A topic-based data matcher that reacts to a service's publications
  */
