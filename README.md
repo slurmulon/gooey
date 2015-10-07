@@ -28,10 +28,12 @@ I've described the issues as I see them in both abstract and concrete terms.
 ### Abstract
 
 SPAs have a dynamic context of multi-layered components that continually changes based on user interactions with the system.
-The states and interactions between these components and their layers often span domains and typically become more complex as an application grows.
+The states and interactions between these components and their layers often span domains and typically become more complex as the context grows.
 
-Elegantly synchronizing the data / state between the components and layers of this dynamic context is, in my opinion, one of the greatest challenges
-facing SPAs.
+In this dynamic context, the provider layer (HTTP server) is stateless while the consumer layer (HTTP clients) is inherently stateful.
+The consumer is therefore responsible for ensuring that its components' states are synchronized properly with that of the provider.
+
+This architecture allows consumer states to incorrectly diverge from their providers, and it happens quite easily.
 
 Gooey aims to ease the management of complex multi-layer component states by iscolating, refining and consolidating the imperative patterns into a single library.
 
