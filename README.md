@@ -190,7 +190,7 @@ Gooey is still in its very early stages. Please feel free to message [me@madhax.
 
 ## Future Modules
 
-- [ ] `gooey.net`
+- [ ] `gooey.http`
 - [ ] `gooey.dom`
 - [ ] `gooey.debug`
 - [ ] `gooey.web` (dependent on `core`, `net`, `dom`, and `debug`)
