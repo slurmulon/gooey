@@ -1,4 +1,4 @@
-# :seedling: Gooey
+# :cactus: Gooey
 
 > PubSub data synchronization solution for ES6 Single Page Applications
 
@@ -33,7 +33,7 @@ The states and interactions between these components and their layers often span
 In this dynamic context, the provider layer (HTTP server) is stateless while the consumer layer (HTTP clients) is inherently stateful.
 The consumer is therefore responsible for ensuring that its components' states are synchronized properly with that of the provider.
 
-This architecture allows consumer states to incorrectly diverge from their providers, and it happens quite easily.
+This architecture allows consumer states to diverge from their providers, and it happens quite easily.
 
 Gooey aims to ease the management of complex multi-layer component states by iscolating, refining and consolidating the imperative patterns into a single library.
 
