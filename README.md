@@ -39,9 +39,11 @@ Gooey aims to ease the management of complex multi-layer component states by isc
 
 ### Concrete
 
-SPAs typically consume Restful HTTP APIs. HTTP APIs are stateless and SPA clients are stateful, introducing an obvious and interesting conflict.
+SPAs typically consume Restful HTTP APIs. HTTP is a stateless protocol and SPA clients are inherently stateful, introducing an obvious and interesting conflict.
 The client is responsible for ensuring that its own representations of API entity states are accurate, often involving reference entities and nested states of sub-entities.
+
 This gap in state makes it possible for the client to have one representation of an entity and the API another.
+The impact of this state gap scales proportionatily to the number of resource entities / sub-entities, and is invevitably toxic to design sustainability.
 
 The following is a non-exhaustive list of designs that attempt to alleviate the problem but seem to fall short because they do not address the root issue:
 
