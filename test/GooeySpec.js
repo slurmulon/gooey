@@ -80,7 +80,7 @@ describe('Service', () => {
     it('should error if an invalid traversal pattern is provided', () => {
       const service   = new gooey.Service('foo')
       const publish = (() => {
-        service.publish('bar', null, null, 'crazy')
+        service.publish('bar', 'crazy')
       }).should.throw()
     })
 
@@ -105,17 +105,17 @@ describe('Service', () => {
         childServiceA.subscribe('$.leaf', resultPusher)
         childServiceB.subscribe('$.evil', resultPusher)
 
-        rootService.publish(testData1, (success) => {
+        rootService.publish(testData1).then(success => {
           success.touchedBy = 'root'
           return success
         })
 
-        rootService.publish(testData2, (success) => {
+        rootService.publish(testData2).then(success => {
           success.touchedBy = 'inny'
           return success
         })
 
-        rootService.publish(testData3, (success) => {
+        rootService.publish(testData3).then(success => {
           success.touchedBy = 'leaf'
           return success
         })
@@ -138,7 +138,7 @@ describe('Service', () => {
           return data
         })
 
-        parent.publish(testData, res => { // FIXME - publish needs to return the final pipelined result
+        parent.publish(testData).then(res => { // FIXME - publish needs to return the final pipelined result
           res.foundBy.should.containEql('parent')
           res.foundBy.should.containEql('child')
         })
@@ -262,27 +262,45 @@ describe('Service', () => {
     it('should remove the subscription from the service', () => {
       const service = new gooey.Service('foo')
       const scrip   = service.subscribe('$', (data) => {
-        delete data.any
+        delete data.pass
         data.fail = true
       })
 
       service.unsubscribe(scrip)
       service.update({pass: true})
 
-      service.data.should.have.ownProperty('pass')
-      service.data.should.not.have.ownProperty('fail')
+      service.state.should.have.ownProperty('pass')
+      service.state.should.not.have.ownProperty('fail')
+    })
+
+    it('should set the subscription as in-active, preventing further mutation', () => {
+      const service = new gooey.Service('foo')
+      const scrip   = service.subscribe('$', (data) => {
+        data.fail = true
+      })
+
+      service.unsubscribe(scrip)
+      service.update({pass: true})
+
+      scrip.active.should.be.false
+
+      service.state.should.have.ownProperty('pass')
+      service.state.should.not.have.ownProperty('fail')
     })
 
     it('should freeze the object to prevent further mutation', () => {
       const service = new gooey.Service('foo')
       const scrip   = service.subscribe('$', (data) => {
-        delete data.any
         data.fail = true
       })
 
       service.unsubscribe(scrip)
+      service.update({pass: true})
 
       Object.isFrozen(scrip).should.be.true      
+
+      service.state.should.have.ownProperty('pass')
+      service.state.should.not.have.ownProperty('fail')
     })
   })
 
@@ -322,7 +340,7 @@ describe('Service', () => {
       service.update({a: 'a'})
       service.merge({b: 'b'})
 
-      service.data.should.eql({a: 'a', b: 'b'})
+      service.state.should.eql({a: 'a', b: 'b'})
     })
   })
 

@@ -86,7 +86,7 @@ export class Service {
    * @param {?String} direction
    * @returns {Promise} deferred service tree traversal(s)
    */
-  publish(data, success: Function = _.noop, error: Function = _.noop, traversal: String = 'breadth', direction: String = 'down'): Promise {
+  publish(data, traversal: String = 'breadth', direction: String = 'down'): Promise {
     // ensure data is pure
     data = _.clone(data, true)
     
@@ -98,8 +98,9 @@ export class Service {
     // when identical subscriptions modify the data (conflict), intercept the original
     // publication and substitute it with a new promised publication for each subscription match
     if (matches.length > 1) {
+      // TODO - log race condition warning
       return Promise.all(
-        matches.map(match => this.publish(match, success, error, traversal, direction))
+        matches.map(match => this.publish(match, traversal, direction))
       )
     }
 
@@ -108,9 +109,9 @@ export class Service {
 
     // traverse service node tree and publish on each "next" node
     return this.traverse(
-      result, traversal, direction, success, error,
+      result, traversal, direction,
       child => {
-        child.publish(result, success, error, traversal, direction)
+        child.publish(result, traversal, direction)
       }
     )
   }
@@ -146,10 +147,10 @@ export class Service {
    * @param {?Function} error
    * @returns {Promise}
    */
-  update(data, success?: Function, error?: Function): Promise {
-    this.data = data
+  update(data): Promise {
+    this.state = data
 
-    return this.publish(data, success, error)
+    return this.publish(data)
   }
 
   /**
@@ -162,10 +163,10 @@ export class Service {
    */
   merge(data: Object, success?: Function, error?: Function): Promise {
     if (_.isObject(data)) {
-      _.merge(this.data, data)
+      _.merge(this.state, data)
     }
 
-    return this.update(this.data, success, error)
+    return this.update(this.state, success, error)
   }
 
   /**
@@ -183,24 +184,20 @@ export class Service {
    * Alias for update
    * 
    * @param {Object} data
-   * @param {?Function} success
-   * @param {?Function} error
    * @returns {Promise}
    */
-  use(data, success?: Function, error?: Function): Promise {
-    return this.update(data, success, error)
+  use(data): Promise {
+    return this.update(data)
   }
 
   /**
    * Alias for merge
    * 
    * @param {Object} data
-   * @param {?Function} success
-   * @param {?Function} error
    * @returns {Promise}
    */
-  up(data, success?: Function, error?: Function): Promise {
-    return merge(data, success, error)
+  up(data): Promise {
+    return merge(data)
   }
 
   /**
@@ -227,12 +224,11 @@ export class Service {
    * @param {Object} data
    * @param {String} traversal supported values defined by gooey.traversals
    * @param {String} direction up or down
-   * @param {Function} success
-   * @param {Function} error
    * @param {Function} next
    * @returns {Promise}
    */
-  traverse(data, traversal: String, direction: String, success: Function, error: Function, next: Function): Promise {
+  // traverse(data, traversal: String, direction: String, success: Function, error: Function, next: Function): Promise {
+  traverse(data, traversal: String, direction: String, next: Function): Promise {
     if (!traversals.find(t => t === traversal)) {
       throw `Failed to traverse, invalid traversal type: ${traversal}`
     }
