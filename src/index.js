@@ -80,8 +80,6 @@ export class Service {
    * Traverses service tree via a conflict-free path and matches subscribers against the published data
    * 
    * @param {Object} data
-   * @param {?Function} success
-   * @param {?Function} error
    * @param {?String} traversal
    * @param {?String} direction
    * @returns {Promise} deferred service tree traversal(s)
@@ -95,21 +93,18 @@ export class Service {
       .map(scrip => scrip.process(data, false))
       .filter(match => match !== null && match !== data))]
 
-    // when identical subscriptions modify the data (conflict), intercept the original
-    // publication and substitute it with a new promised publication for each subscription match
+    // when identical subscriptions modify the data (race/conflict)
+    // warn the developer and default to first result
+    // TODO - much more research into an actual solution
     if (matches.length > 1) {
-      // TODO - log race condition warning
-      return Promise.all(
-        matches.map(match => this.publish(match, traversal, direction))
-      )
+      this.log(`Conflicting subscription results detected during publish: ${this.name} | ${this.traversal} | ${this.direction}`, 'WARN')
     }
 
     // final result is either converged, conflict-resolved subscriber match or cloned source data 
     const result = matches[0] || data
 
     // traverse service node tree and publish on each "next" node
-    return this.traverse(
-      result, traversal, direction,
+    return this.traverse(result, traversal, direction,
       child => {
         child.publish(result, traversal, direction)
       }
@@ -143,8 +138,6 @@ export class Service {
    * Updates the Service's canonical data source with new data and publishs the change
    * 
    * @param {Object} data
-   * @param {?Function} success
-   * @param {?Function} error
    * @returns {Promise}
    */
   update(data): Promise {
@@ -157,16 +150,15 @@ export class Service {
    * Merges and updates the Service's canonical date source with a new data object and publishs the change
    * 
    * @param {Object} data
-   * @param {?Function} success
    * @param {?Function} error
    * @returns {Promise}
    */
-  merge(data: Object, success?: Function, error?: Function): Promise {
+  merge(data: Object): Promise {
     if (_.isObject(data)) {
       _.merge(this.state, data)
     }
 
-    return this.update(this.state, success, error)
+    return this.update(this.state)
   }
 
   /**
@@ -227,7 +219,6 @@ export class Service {
    * @param {Function} next
    * @returns {Promise}
    */
-  // traverse(data, traversal: String, direction: String, success: Function, error: Function, next: Function): Promise {
   traverse(data, traversal: String, direction: String, next: Function): Promise {
     if (!traversals.find(t => t === traversal)) {
       throw `Failed to traverse, invalid traversal type: ${traversal}`
@@ -260,7 +251,7 @@ export class Service {
     // end node
     return new Promise((resolve, reject) => {
       try {
-        resolve(success(result))
+        resolve(result)
       } catch (err) {
         reject(err)
       }
@@ -468,8 +459,6 @@ export class Subscription {
    * Determines sub-of data that matches subscription path/pattern
    * 
    * @param {Object} data
-   * @param {?Function} success
-   * @param {?Function} error
    * @returns {Set} data matching subscription
    */
   matches(data): Set {
@@ -546,3 +535,8 @@ export const clear = () => { _services = new Set() }
  * Convenience reference to utility module
  */
 export const util = _util
+
+/**
+ * Logger for establishing a consistent message format
+ */
+export const log = (msg: String, level: String) => `[gooey:${level || 'INFO'}] ${msg}`
