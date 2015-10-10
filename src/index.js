@@ -445,7 +445,6 @@ export class Service {
   }
 }
 
-// TODO - might want to just make this extend Promise, "on" can be redundant
 /**
  * A topic-based data matcher that reacts to a service's publications
  */
@@ -546,4 +545,4 @@ export const clear = () => { _services = new Set() }
 /**
  * Convenience reference to utility module
  */
- export const util = _util
+export const util = _util
