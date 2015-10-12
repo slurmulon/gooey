@@ -64,14 +64,14 @@ export class Service {
     this.name = name
     this.model = model
     this.state = {}
-    this.parent = parent ? parent.relateTo(this) : null
+    this.parent = parent instanceof Service ? parent.relateTo(this) : null
     this.children = this.relateToAll(children)
     this.subscriptions = []
     this.config = config
 
     _services[name] = this
 
-    if (this.model) {
+    if (this.model instanceof Function) {
       this.model(this.state)
     }
   }
