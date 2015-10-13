@@ -1,7 +1,7 @@
 'use strict'
 
 /**
- * More convenient object comnparison
+ * More convenient object comparison
  */
 export const is = (x, y) => x === y || Object.is(x, y)
 

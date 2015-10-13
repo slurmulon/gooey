@@ -148,10 +148,10 @@ These relationships naturally establish a tree structure that can scale to suppo
     (?) Child Service A           (?) Child Service B
 
 
-`Services` that form this tree can publish data to each other bi-direciontally. Gooey supports several
+`Services` that form this tree can publish data to each other bi-directionally. Gooey supports several
 traversal patterns for data publication but performs breadth-first up/down by default.
 
-Because `Services` can communicate with related services bi-direciontally, they can be extended to support the components
+Because `Services` can communicate with related services bi-directionally, they can be extended to support the components
 of a modern SPA:
 
 
@@ -166,7 +166,7 @@ of a modern SPA:
     (?) View Service A         (?) View Service B
 
 
-However, this design is out of the scope of Gooey core and will be implemented its own module (`gooey.web`).
+However, this design is out of the scope of Gooey core and will be implemented its own module (`gooey.http`).
 
 ## Installation
 
