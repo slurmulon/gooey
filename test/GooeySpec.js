@@ -78,10 +78,7 @@ describe('Service', () => {
     })
 
     it('should error if an invalid traversal pattern is provided', () => {
-      const service   = new gooey.Service('foo')
-      const publish = (() => {
-        service.publish('bar', 'crazy')
-      }).should.throw()
+      new gooey.Service('foo').publish('bar', 'crazy').should.be.rejected
     })
 
     describe('when traversal is `breadth` and direction is `down`', () => {
@@ -168,14 +165,25 @@ describe('Service', () => {
         // TODO
       })
 
-      xit('should properly synchronize identical  matching subscription responses (same pattern, same service', () => {
+      xit('should properly synchronize identical matching subscription responses (same pattern, same service', () => {
         // TODO
       })
     })
 
     xdescribe('when traversal is `breadth` and direction is `up`', () => {
-      it('should traverse the parent service', () => {
+      it('should traverse all nodes sharing the depth (siblings) of the parent service (including parent)', () => {
         // TODO
+        const a1 = new gooey.Service('A1')
+        const a2 = new gooey.Service('A2')
+        const a1b1 = new gooey.service({name: 'A1B1', parent: a1})
+        const a1b2 = new gooey.service({name: 'A1B2', parent: a1})
+        const a2b1 = new gooey.service({name: 'A2B1', parent: a2})
+        const a2b2 = new gooey.service({name: 'A2B2', parent: a2})
+        const a1b1c1 = new gooey.service({name: 'A1B1C1', parent: a1b1})
+
+        a1b1c1.publish({foo: 'bar'}, 'breadth', 'up').then(result => {
+
+        })
       })
     })
 

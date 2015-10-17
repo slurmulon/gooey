@@ -59,7 +59,8 @@ The following is a non-exhaustive list of designs that attempt to alleviate the 
       - Highly redundant (no granular sub-entity updates)
       - Violates encapsulation
       - Duplication of business logic
-      - Hard to test
+      - Difficult to validate requests
+      - Difficult to test
 
  - Closely reflect the domain model of the Restful API in the client
 
@@ -72,7 +73,7 @@ The following is a non-exhaustive list of designs that attempt to alleviate the 
       - Low maintainability
       - Duplication of business logic
 
- - Allow Restful API resources to provide both granular and verbose responses
+ - Allowing Restful API resources to provide both normalized and denormalized entity responses
 
    * Pros
       - Optimizes request size and number
@@ -82,7 +83,7 @@ The following is a non-exhaustive list of designs that attempt to alleviate the 
       - Complicates client and API entity models with compsition combinations (e.g. A, B, C, AB, AC, BC, ABC)
       - Nested sub-entities are difficult to access and work with in API routing systems, Restful or not. To my knowledge no URL standards exist for this.
       - Fails to address client issue of cleanly managing responses with complex entity compositions
-      - Can be hard to test
+      - Can be difficult to test
 
 On a semi-related note, the mechanism of data synchronization and "binding" in modern JS frameworks is often re-invented and sometimes implemented with
 inefficient and bug-prone solutions that emphasize digest cycles or queued listeners.
@@ -149,8 +150,8 @@ These relationships naturally establish a tree structure that can scale to suppo
     (?) Child Service A           (?) Child Service B
 
 
-`Services` that form this tree can publish data to each other bi-directionally. Gooey supports several
-traversal patterns for data publication but performs breadth-first up/down by default.
+`Services` that form a tree can publish data to each other bi-directionally. Gooey supports several
+traversal patterns for data publication but performs breadth-first down/up by default.
 
 Because `Services` can communicate with related services bi-directionally, they can be extended to support the components
 of a modern SPA:

@@ -85,30 +85,33 @@ export class Service {
    * @returns {Promise} deferred service tree traversal(s)
    */
   publish(data, traversal: String = 'breadth', direction: String = 'down'): Promise {
-    // ensure data is pure
-    data = _.clone(data, true)
-    
-    // process data against matching subscribers and filter for untouched, null, and dupes
-    const matches = [... new Set(this.subscriptions
-      .map(scrip => scrip.process(data, false))
-      .filter(match => match !== null && match !== data))]
+    return new Promise((resolve, reject) => {
+      // ensure data is pure
+      data = _.clone(data, true)
 
-    // when identical subscriptions modify the data (race/conflict)
-    // warn the developer and default to first result
-    // TODO - much more research into an actual solution
-    if (matches.length > 1) {
-      this.log(`Conflicting subscription results detected during publish: ${this.name} | ${this.traversal} | ${this.direction}`, 'WARN')
-    }
+      // process data against matching subscribers and filter for untouched, null, and dupes
+      const matches = [... new Set(this.subscriptions
+        .map(scrip => scrip.process(data, false))
+        .filter(match => match !== null && match !== data))]
 
-    // final result is either converged, conflict-resolved subscriber match or cloned source data 
-    const result = matches[0] || data
+      // TODO - allow a mode to circumvent children/parent nodes if no matches with changes occured in this service
 
-    // traverse service node tree and publish on each "next" node
-    return this.traverse(result, traversal, direction,
-      child => {
-        child.publish(result, traversal, direction)
+      // when identical subscriptions modify the data (race/conflict)
+      // warn the developer and default to first result
+      if (matches.length > 1) {
+        this.log(`Conflicting subscription results detected during publish, using first match: ${this.name} | ${this.traversal} | ${this.direction}`, 'WARN')
       }
-    )
+
+      // final result is either converged, conflict-resolved subscriber match or cloned source data 
+      const result = matches[0] || data
+
+      // traverse service node tree and publish on each "next" node
+      return this.traverse(result, traversal, direction,
+        child => {
+          child.publish(result, traversal, direction)
+        }
+      )
+    })
   }
 
   /**
@@ -234,16 +237,16 @@ export class Service {
       }
     }
 
-    if (direction === 'up' && this.parent) { // WIP!
+    if (direction === 'up' && this.parent) {
       if (traversal === 'breadth') {
         return Promise.all(
-          this.parent.siblings(null, true).map(next)
+          [this.parent].concat(this.parent.siblings(null, true))
         )
       }
 
-      if (traversal === 'depth') {
-        return this.parent.siblings(null, true).map(next)
-      }
+      // if (traversal === 'depth') { // WIP
+      //   return this.parent.siblings(null, true).map(next)
+      // }
     }
 
     // TODO - async_local traversal
