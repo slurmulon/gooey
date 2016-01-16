@@ -11,6 +11,10 @@ import _ from 'lodash'
 
 import * as _util from './util'
 
+//
+import * as traversals from './traverse'
+//
+
 /**
  * Flat map of all registered services, indexed by name
  */
@@ -40,10 +44,11 @@ const _config = {
 /**
  * Supported flavors of service tree traversals
  */
-const traversals = ['depth', 'breadth', 'async_global', 'async_local']
+// const traversals = ['depth', 'breadth', 'async_global', 'async_local']
 
 /**
  * A canonical, hierarchical, and composable data source that can publish and receive updates bi-directionally with other services
+ * Forms a full k-ary tree that exists in a global forest
  */
 export class Service {
 
@@ -68,12 +73,21 @@ export class Service {
     this.children = this.relateToAll(children)
     this.subscriptions = []
     this.config = config
+    this.symbol = Symbol(name)
 
     _services[name] = this
 
     if (this.model instanceof Function) {
       this.model(this.state)
     }
+  }
+
+  get data() {
+    return this.state
+  }
+
+  set data(data: Object) {
+    this.update(data)
   }
 
   /**
@@ -89,24 +103,22 @@ export class Service {
       // ensure data is pure
       data = _.clone(data, true)
 
-      // process data against matching subscribers and filter for untouched, null, and dupes
-      const matches = [... new Set(this.subscriptions
-        .map(scrip => scrip.process(data, false))
-        .filter(match => match !== null && match !== data))]
-
-      // TODO - allow a mode to circumvent children/parent nodes if no matches with changes occured in this service
+      // process data against matching subscribers
+      const matches = this.subscriptions.map(subscrip => subscrip.process(data, false))
+      //   // .filter(match => !Object.is(match, null) && !Object.is(match, data))]
+      // TODO - allow a mode (volatile) to circumvent children/parent nodes if no matches with changes occured in this service
 
       // when identical subscriptions modify the data (race/conflict)
       // warn the developer and default to first result
       if (matches.length > 1) {
-        this.log(`Conflicting subscription results detected during publish, using first match: ${this.name} | ${this.traversal} | ${this.direction}`, 'WARN')
+        this.log(`Conflicting subsubscription results detected during publish, using first match: ${this.name} | ${this.traversal} | ${this.direction}`, 'WARN')
       }
 
       // final result is either converged, conflict-resolved subscriber match or cloned source data 
       const result = matches[0] || data
 
       // traverse service node tree and publish on each "next" node
-      return this.traverse(result, traversal, direction,
+      return this.traverse(traversal, direction,
         child => {
           child.publish(result, traversal, direction)
         }
@@ -115,26 +127,26 @@ export class Service {
   }
 
   /**
-   * Creates and registers a publish subscription with the Service
+   * Creates and registers a publish subsubscription with the Service
    * 
    * @param {String} path
    * @param {Function} on
    */
   subscribe(path: String = '$', on: Function): Subscription {
-    const scrip = new Subscription(this, path, on)
+    const subscrip = new Subscription(this, path, on)
 
-    this.subscriptions.push(scrip)
+    this.subscriptions.push(subscrip)
 
-    return scrip
+    return subscrip
   }
 
   /**
-   * Deregisters a subscription from the Service
+   * Deregisters a subsubscription from the Service
    * 
-   * @param {Subscription} scrip
+   * @param {Subscription} subscrip
    */
-  unsubscribe(scrip: Subscription) {
-    this.subscriptions.splice(this.subscriptions.indexOf(scrip), 1)
+  unsubscribe(subscrip: Subscription) {
+    this.subscriptions.splice(this.subscriptions.indexOf(subscrip), 1)
   }
 
   /**
@@ -192,18 +204,18 @@ export class Service {
    * @returns {Promise}
    */
   up(data): Promise {
-    return merge(data)
+    return this.merge(data)
   }
 
   /**
-   * Determines set of data that matches the provided subscription's path/pattern
+   * Determines set of data that matches the provided subsubscription's path/pattern
    * 
    * @param {Object} data
-   * @param {Subscription} scrip
+   * @param {Subscription} subscrip
    * @returns {Set}
    */
-  matches(data, scrip: Subscription): Set {
-    return scrip.matches(data)
+  matches(data, subscrip: Subscription): Set {
+    return subscrip.matches(data)
   }
 
   /**
@@ -212,7 +224,7 @@ export class Service {
    * Supported traversals:
    * - [ ] Depth-first Up (in prog.)
    * - [X] Depth-first Down
-   * - [ ] Breadth-first Up (in prog.)
+   * - [X] Breadth-first Up (in prog.)
    * - [X] Breadth-first Down
    * - [ ] Async Local {direc}
    * 
@@ -222,43 +234,46 @@ export class Service {
    * @param {Function} next
    * @returns {Promise}
    */
-  traverse(data, traversal: String, direction: String, next: Function): Promise {
-    if (!traversals.find(t => t === traversal)) {
-      throw `Failed to traverse, invalid traversal type: ${traversal}`
-    }
+  traverse(traversal: String, direction: String, next: Function): Promise {
+  // traverse(traversal: String, direction: traversal.Direction)
+    return traversals.start.call(this, traversal, direction, next)
+    // return traversals.start(this, traversal, direction, next)
+    // if (!traversals.find(t => t === traversal)) {
+    //   throw `Failed to traverse, invalid traversal type: ${traversal}`
+    // }
 
-    if (direction === 'down' && this.children.length) {
-      if (traversal === 'breadth') {
-        return Promise.all(this.children.map(next))
-      }
+    // if (direction === 'down' && this.children.length) {
+    //   if (traversal === 'breadth') {
+    //     return Promise.all(this.children.map(next))
+    //   }
 
-      if (traversal === 'depth') {
-        return this.children.map(next)
-      }
-    }
+    //   if (traversal === 'depth') {
+    //     return this.children.map(next)
+    //   }
+    // }
 
-    if (direction === 'up' && this.parent) {
-      if (traversal === 'breadth') {
-        return Promise.all(
-          [this.parent].concat(this.parent.siblings(null, true))
-        )
-      }
+    // if (direction === 'up' && this.parent) {
+    //   if (traversal === 'breadth') {
+    //     return Promise.all(
+    //       [this.parent].concat(this.parent.siblings(null, true))
+    //     )
+    //   }
 
-      // if (traversal === 'depth') { // WIP
-      //   return this.parent.siblings(null, true).map(next)
-      // }
-    }
+    //   // if (traversal === 'depth') { // WIP
+    //   //   return this.parent.siblings(null, true).map(next)
+    //   // }
+    // }
 
-    // TODO - async_local traversal
+    // // TODO - async_local traversal
 
-    // end node
-    return new Promise((resolve, reject) => {
-      try {
-        resolve(result)
-      } catch (err) {
-        reject(err)
-      }
-    })
+    // // end node
+    // return new Promise((resolve, reject) => {
+    //   try {
+    //     resolve(result)
+    //   } catch (err) {
+    //     reject(err)
+    //   }
+    // })
   }
 
   /**
@@ -274,7 +289,7 @@ export class Service {
     this.children.push(child)
 
     if (Service.cycleExists()) {
-      this.children.pop() // FIXME - bleh, needs improvement
+      this.children.pop() // FIXME - bleh, needs improvement to say the least
     }
 
     return this
@@ -378,12 +393,12 @@ export class Service {
    * @param {Array} nodes service tree to search through (default is global)
    * @returns {Array}
    */
-  static findAtDepth(targetDepth: Int, nodes: Array): Array {
+  static findAtDepth(targetDepth: Int, nodes: Array = []): Array {
     const found  = []
     let curDepth = 0
 
-    _.forEach(nodes, node => {
-      _.forEach(node.children, child => {
+    nodes.forEach(node => {
+      (node.children || []).forEach(child => {
         curDepth = child.depth()
 
         if (curDepth < targetDepth) {
@@ -404,18 +419,18 @@ export class Service {
    * @returns {Boolean}
    */
   static cycleExists(services = _services): Boolean {
-    const roots = Service.findRoots(services)
+    const roots = Service.findRoots(services) || []
     const found = !_.isEmpty(roots) ? roots.map(r => r.name) : []
 
     let curNode = null
     let cyclic  = false
 
-    _.forEach(roots, root => {
+    roots.forEach(root => {
       curNode = root
 
       while (!cyclic && !_.isEmpty(curNode.children)) {
-        curNode.children.forEach(child => {
-          if (!_.contains(found, child.name)) {
+        (curNode.children || []).forEach(child => {
+          if (!found.includes(child.name)) {
             found.push(child.name)
 
             curNode = child
@@ -435,7 +450,7 @@ export class Service {
    * @returns {Boolean}
    */
   static isRegistered(name: String): Boolean {
-    return _.contains(Array.from(_services).map(s => s.name), name)
+    return Array.from(_services).map(s => s.name).includes(name)
   }
 }
 
@@ -459,10 +474,10 @@ export class Subscription {
   }
 
   /**
-   * Determines sub-of data that matches subscription path/pattern
+   * Determines sub-of data that matches subsubscription path/pattern
    * 
    * @param {Object} data
-   * @returns {Set} data matching subscription
+   * @returns {Set} data matching subsubscription
    */
   matches(data): Set {
     const matchSet = new Set()
@@ -483,31 +498,36 @@ export class Subscription {
   }
 
   /**
-   * Determines if data matches the subscription and, if so, allows
-   * the subscription to mutate and return the data.
+   * Determines if data matches the subsubscription and, if so, allows
+   * the subsubscription to mutate and return the data.
    * 
    * @param {Object} data
    * @param {Boolean} passive return either untouched data on mismatch (true) or null on mismatch (false)
-   * @returns {Object} subscription modified data
+   * @returns {Object} subsubscription modified data
    */
   process(data, passive: Boolean = true): Object {
-    return !!this.matches(data).size ? this.on(data) : (passive ? data : null)
+    return this.matches(data).size ? this.on(data) : (passive ? data : null)
   }
 
   /**
-   * Unsubscribes a subscription from its service and mark it as inactive.
+   * Unsubscribes a subsubscription from its service and mark it as inactive.
    * Subscription will not react to any messages from service until activated again.
    */
   end() {
     service.unsubscribe(this)
+
     this.active = false
   }
 
   /**
-   * Activates the subscription, permitting it to react to topic-based messages
+   * Activates the subsubscription, permitting it to react to topic-based messages
    */
   activate() {
     this.active = true
+  }
+
+  toString() {
+    return `gooey.${this.name}: ${JSON.stringify(this)}`
   }
 
 }

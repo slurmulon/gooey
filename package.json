@@ -4,7 +4,9 @@
   "description": "PubSub data synchronization solution for ES6",
   "main": "index.js",
   "scripts": {
-    "test": "gulp test"
+    "build": "gulp compile",
+    "test": "gulp test",
+    "preinstall": "npm install --ignore-scripts && npm run build"
   },
   "repository": {
     "type": "git",
@@ -24,16 +26,12 @@
     "url": "https://github.com/slurmulon/gooey/issues"
   },
   "devDependencies": {
-    "babel": "^5.8.21",
-    "babel-runtime": "^5.8.25",
     "gulp": "~3.9.0",
-    "gulp-babel": "~5.1.0",
-    "gulp-shell": "~0.4.2",
+    "gulp-babel": "^5.1.0",
+    "gulp-shell": "^0.5.1",
     "istanbul": "^0.3.18",
     "lodash": "~3.10.0",
     "mocha": "~2.2.5",
-    "mocha-babel": "^3.0.0",
-    "mocha-traceur": "~2.1.0",
     "should": "~7.0.2"
   },
   "dependencies": {
