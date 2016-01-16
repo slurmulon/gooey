@@ -228,52 +228,13 @@ export class Service {
    * - [X] Breadth-first Down
    * - [ ] Async Local {direc}
    * 
-   * @param {Object} data
-   * @param {String} traversal supported values defined by gooey.traversals
+   * @param {String} traversal supported values defined by gooey.traverse.patterns
    * @param {String} direction up or down
    * @param {Function} next
    * @returns {Promise}
    */
   traverse(traversal: String, direction: String, next: Function): Promise {
-  // traverse(traversal: String, direction: traversal.Direction)
     return traversals.start.call(this, traversal, direction, next)
-    // return traversals.start(this, traversal, direction, next)
-    // if (!traversals.find(t => t === traversal)) {
-    //   throw `Failed to traverse, invalid traversal type: ${traversal}`
-    // }
-
-    // if (direction === 'down' && this.children.length) {
-    //   if (traversal === 'breadth') {
-    //     return Promise.all(this.children.map(next))
-    //   }
-
-    //   if (traversal === 'depth') {
-    //     return this.children.map(next)
-    //   }
-    // }
-
-    // if (direction === 'up' && this.parent) {
-    //   if (traversal === 'breadth') {
-    //     return Promise.all(
-    //       [this.parent].concat(this.parent.siblings(null, true))
-    //     )
-    //   }
-
-    //   // if (traversal === 'depth') { // WIP
-    //   //   return this.parent.siblings(null, true).map(next)
-    //   // }
-    // }
-
-    // // TODO - async_local traversal
-
-    // // end node
-    // return new Promise((resolve, reject) => {
-    //   try {
-    //     resolve(result)
-    //   } catch (err) {
-    //     reject(err)
-    //   }
-    // })
   }
 
   /**
