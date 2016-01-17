@@ -56,7 +56,7 @@ export function step(name, direction, next): Promise {
       up   : () => this.parent,
       down : () => this.children.length,
       none : () => false
-    }[direction]()
+    }[direction || 'none']()
 
     // inner node
     if (canProceed) {

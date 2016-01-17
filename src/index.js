@@ -24,8 +24,6 @@ const _config = {
   strict: true,
 
   data: {
-    lazy: false,
-
     matching: {
       queries : true
     },
@@ -434,7 +432,7 @@ export class Subscription {
     if (this.active && this.service.config.data.matching.queries) { // FIXME - determine if jsonpath query via regex
       const jpMatches = jsonPath.query(data, this.path)
 
-      if (jpMatches && !!jpMatches.length) {
+      if (jpMatches && jpMatches.length) {
         matchSet.add(...jpMatches)
       }
     }
