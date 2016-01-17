@@ -9,11 +9,8 @@
 import jsonPath from 'jsonpath'
 import _ from 'lodash'
 
-import * as _util from './util'
-
-//
 import * as traversals from './traverse'
-//
+import * as _util from './util'
 
 /**
  * Flat map of all registered services, indexed by name
@@ -40,11 +37,6 @@ const _config = {
     }
   }
 }
-
-/**
- * Supported flavors of service tree traversals
- */
-// const traversals = ['depth', 'breadth', 'async_global', 'async_local']
 
 /**
  * A canonical, hierarchical, and composable data source that can publish and receive updates bi-directionally with other services
@@ -82,10 +74,20 @@ export class Service {
     }
   }
 
+  /**
+   * Getter alias for `data`
+   *
+   * @returns {Object}
+   */
   get data() {
     return this.state
   }
 
+  /**
+   * Setter for `data` that automatically publishes changes with default traversal settings
+   *
+   * @param {Object} data
+   */
   set data(data: Object) {
     this.update(data)
   }
@@ -105,14 +107,7 @@ export class Service {
 
       // process data against matching subscribers
       const matches = this.subscriptions.map(subscrip => subscrip.process(data, false))
-      //   // .filter(match => !Object.is(match, null) && !Object.is(match, data))]
       // TODO - allow a mode (volatile) to circumvent children/parent nodes if no matches with changes occured in this service
-
-      // when identical subscriptions modify the data (race/conflict)
-      // warn the developer and default to first result
-      if (matches.length > 1) {
-        this.log(`Conflicting subsubscription results detected during publish, using first match: ${this.name} | ${this.traversal} | ${this.direction}`, 'WARN')
-      }
 
       // final result is either converged, conflict-resolved subscriber match or cloned source data 
       const result = matches[0] || data
@@ -155,10 +150,10 @@ export class Service {
    * @param {Object} data
    * @returns {Promise}
    */
-  update(data): Promise {
+  update(data: Object, ...rest): Promise {
     this.state = data
 
-    return this.publish(data)
+    return this.publish(data, ...rest)
   }
 
   /**
@@ -168,12 +163,12 @@ export class Service {
    * @param {?Function} error
    * @returns {Promise}
    */
-  merge(data: Object): Promise {
+  merge(data: Object, ...rest): Promise {
     if (_.isObject(data)) {
       _.merge(this.state, data)
     }
 
-    return this.update(this.state)
+    return this.update(this.state, ...rest)
   }
 
   /**
@@ -193,8 +188,8 @@ export class Service {
    * @param {Object} data
    * @returns {Promise}
    */
-  use(data): Promise {
-    return this.update(data)
+  use(data, ...rest): Promise {
+    return this.update(data, ...rest)
   }
 
   /**
@@ -203,8 +198,8 @@ export class Service {
    * @param {Object} data
    * @returns {Promise}
    */
-  up(data): Promise {
-    return this.merge(data)
+  up(data, ...rest): Promise {
+    return this.merge(data, ...rest)
   }
 
   /**
@@ -221,20 +216,13 @@ export class Service {
   /**
    * Recursively traverses service tree via provided `next` function
    * 
-   * Supported traversals:
-   * - [ ] Depth-first Up (in prog.)
-   * - [X] Depth-first Down
-   * - [X] Breadth-first Up (in prog.)
-   * - [X] Breadth-first Down
-   * - [ ] Async Local {direc}
-   * 
    * @param {String} traversal supported values defined by gooey.traverse.patterns
-   * @param {String} direction up or down
+   * @param {String} direction up, down or bi
    * @param {Function} next
    * @returns {Promise}
    */
   traverse(traversal: String, direction: String, next: Function): Promise {
-    return traversals.start.call(this, traversal, direction, next)
+    return traversals.step.call(this, traversal, direction, next)
   }
 
   /**
@@ -411,7 +399,7 @@ export class Service {
    * @returns {Boolean}
    */
   static isRegistered(name: String): Boolean {
-    return Array.from(_services).map(s => s.name).includes(name)
+    return Array.from(_services).map(serv => serv.name).includes(name)
   }
 }
 
@@ -488,13 +476,13 @@ export class Subscription {
   }
 
   toString() {
-    return `gooey.${this.name}: ${JSON.stringify(this)}`
+    return `[gooey.${this.name}]: ${JSON.stringify(this)}`
   }
 
 }
 
 /**
- * Alternative POJO-style factory method for services (destructures object into arguments)
+ * Alternative destructured alias or Service constructor
  * 
  * @param {String} name
  * @param {?Function} model
@@ -511,14 +499,14 @@ export var service = ({name, model, parent, children, config}) => new Service(na
 export var services = _services
 
 /**
- * Detaches services from module
- */
-export const clear = () => { _services = new Set() }
-
-/**
  * Convenience reference to utility module
  */
 export const util = _util
+
+/**
+ * Detaches services from module
+ */
+export const clear = () => { _services = new Set() }
 
 /**
  * Logger for establishing a consistent message format
