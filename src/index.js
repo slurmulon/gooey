@@ -7,7 +7,6 @@
 // ·▀▀▀▀  ▀█▄▀▪ ▀█▄▀▪ ▀▀▀   ▀ • 
 
 import jsonPath from 'jsonpath'
-import _ from 'lodash'
 
 import * as traversals from './traverse'
 import * as _util from './util'
@@ -52,7 +51,7 @@ export class Service {
    * @param {?Object} config
    */
   constructor(name: String, model?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
-    if (_.isUndefined(name) || Service.isRegistered(name)) {
+    if (Object.is(name, undefined) || Service.isRegistered(name)) {
       throw `Services must have unique names: ${name}`
     }
 
@@ -98,23 +97,22 @@ export class Service {
    * @param {?String} direction
    * @returns {Promise} deferred service tree traversal(s)
    */
+  // TODO - Allow users to publish data with a certain key
+  // - that way you aren't forced to always write a JsonPath or matcher function for each subscribe / publish
   publish(data, traversal: String = 'breadth', direction: String = 'down'): Promise {
     return new Promise((resolve, reject) => {
       // ensure data is pure
-      data = _.clone(data, true)
+      data = Object.assign({}, data)
 
       // process data against matching subscribers
       const matches = this.subscriptions.map(subscrip => subscrip.process(data, false))
-      // TODO - allow a mode (volatile) to circumvent children/parent nodes if no matches with changes occured in this service
 
-      // final result is either converged, conflict-resolved subscriber match or cloned source data 
+      // final result is either converged conflict-resolved subscriber match or cloned source data 
       const result = matches[0] || data
 
       // traverse service node tree and publish on each "next" node
       return this.traverse(traversal, direction,
-        child => {
-          child.publish(result, traversal, direction)
-        }
+        next => next.publish(result, traversal, direction)
       )
     })
   }
@@ -155,18 +153,16 @@ export class Service {
   }
 
   /**
-   * Merges and updates the Service's canonical date source with a new data object and publishs the change
+   * Merges and updates the Service's canonical date source with a new (cloned) data object and publishs the change
    * 
    * @param {Object} data
    * @param {?Function} error
    * @returns {Promise}
    */
   merge(data: Object, ...rest): Promise {
-    if (_.isObject(data)) {
-      _.merge(this.state, data)
-    }
+    const merged = data instanceof Object ? Object.assign({}, this.state, data) : this.state
 
-    return this.update(this.state, ...rest)
+    return this.update(merged, ...rest)
   }
 
   /**
@@ -226,7 +222,7 @@ export class Service {
   /**
    * Establishes strong acyclic child relationship with provided service.
    * Child services inherit publications from their parent.
-   * The opposite is also supported via traversals.
+   * The opposite is also supported via `up` traversals.
    * Silently fails if a cyclic relationship is proposed.
    * 
    * @param {Service} child service to relate to
@@ -245,7 +241,7 @@ export class Service {
   /**
    * Establishes service as parent to each provided child service.
    * Child services inherit publications from their parent.
-   * The opposite is also supported via traversals.
+   * The opposite is also supported via `up` traversals.
    * 
    * @param {Array} children services to relate to
    * @returns {Array} modified children services with new parent relationship
@@ -316,9 +312,7 @@ export class Service {
    * @returns {Array}
    */
   static findRoots(services: Array = _services): Array {
-    return _(services).values().filter(svc =>
-      (svc instanceof Service) && svc.isRoot()
-    ).value()
+    return Object.values(services).filter(svc => svc instanceof Service && svc.isRoot())
   }
 
   /**
@@ -328,9 +322,7 @@ export class Service {
    * @returns {Array}
    */
   static findLeafs(services: Array = _services): Array {
-    return _(services).values().filter(svc =>
-      (svc instanceof Service) && svc.isLeaf()
-    ).value()
+    return Object.values(services).filter(svc => svc instanceof Service && svc.isLeaf())
   }
 
   /**
@@ -367,7 +359,7 @@ export class Service {
    */
   static cycleExists(services = _services): Boolean {
     const roots = Service.findRoots(services) || []
-    const found = !_.isEmpty(roots) ? roots.map(r => r.name) : []
+    const found = !util.isEmpty(roots) ? roots.map(r => r.name) : []
 
     let curNode = null
     let cyclic  = false
@@ -375,7 +367,7 @@ export class Service {
     roots.forEach(root => {
       curNode = root
 
-      while (!cyclic && !_.isEmpty(curNode.children)) {
+      while (!cyclic && !util.isEmpty(curNode.children)) {
         (curNode.children || []).forEach(child => {
           if (!found.includes(child.name)) {
             found.push(child.name)

@@ -30,12 +30,10 @@
     "gulp-babel": "^5.1.0",
     "gulp-shell": "^0.5.1",
     "istanbul": "^0.3.18",
-    "lodash": "~3.10.0",
     "mocha": "~2.2.5",
     "should": "~7.0.2"
   },
   "dependencies": {
-    "harmony-reflect": "^1.4.0",
     "jsonpath": "~0.1.8"
   }
 }

@@ -1,8 +1,5 @@
 'use strict'
 
-// TODO - support "bi" direction
-// TODO - support history "tail"
-
 /**
  * Singleton pool of traversal patterns
  * that can be used in `gooey.Service.publish` events.
@@ -10,7 +7,7 @@
  * extension of the `patterns` object directly
  */
 export const patterns = {
-  breadth : {
+  breadth: {
     up: function(next) {
       return Promise.all(
         [this.parent].concat(this.parent.siblings(null, true))
@@ -19,7 +16,11 @@ export const patterns = {
 
     down: function(next) {
       return Promise.all(this.children.map(next))
-    }
+    },
+
+    // bi: function(next)
+
+    // hybrid: function(next, tail)
   },
 
   depth: {
@@ -27,6 +28,7 @@ export const patterns = {
       return this.children.map(next)
     }
   }
+
   // async: { }
 }
 
@@ -52,14 +54,13 @@ export function step(name, direction, next): Promise {
   const traversal = patterns[name][direction]
 
   if (traversal) {
-    const canProceed = !!{
+    const canNext = direction && {
       up   : () => this.parent,
-      down : () => this.children.length,
-      none : () => false
-    }[direction || 'none']()
+      down : () => this.children.length
+    }[direction]()
 
     // inner node
-    if (canProceed) {
+    if (canNext) {
       return traversal.call(this, next)
     }
 
@@ -84,11 +85,6 @@ export function step(name, direction, next): Promise {
  * @param pattern {Object}
  */
 export function add(pattern) {
-  const { name: {directions} } = pattern
-
-  if (!name || !directions)
-    throw new TypeError('patterns require a `name` and at least one `direction` function')
-
   Object.assign(patterns, pattern)
 }
 
