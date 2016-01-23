@@ -1,7 +1,7 @@
 {
   "name": "gooey-core",
   "version": "0.0.0",
-  "description": "PubSub data synchronization solution for ES6",
+  "description": "Hierarchical PubSub data synchronization solution for ES6",
   "main": "index.js",
   "scripts": {
     "build": "gulp compile",
