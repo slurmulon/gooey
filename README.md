@@ -199,4 +199,4 @@ Gooey is still in its very early stages. Please feel free to message [me@madhax.
 - [ ] `gooey.http`
 - [ ] `gooey.dom`
 - [ ] `gooey.debug`
-- [ ] `gooey.web` (dependent on `core`, `net`, `dom`, and `debug`)
+- [ ] `gooey.web` (dependent on `core`, `http`, `dom`, and `debug`)

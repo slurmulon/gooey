@@ -1,5 +1,5 @@
 {
-  "name": "gooey",
+  "name": "gooey-core",
   "version": "0.0.0",
   "description": "PubSub data synchronization solution for ES6",
   "main": "index.js",
