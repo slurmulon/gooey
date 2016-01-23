@@ -14,6 +14,8 @@ gulp.task('compile', ['clean'], function() {
   .pipe(gulp.dest('dist'))
 })
 
-gulp.task('test', ['compile'], shell.task(['mocha --reporter nyan --compilers js:mocha-babel test/']))
+// TODO - browserify
 
-gulp.task('coverage', ['compile'], shell.task(['./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --compilers js:babel/register']))
+gulp.task('test', ['compile'], shell.task(['node ./node_modules/.bin/_mocha --reporter nyan --compilers js:babel/register test/']))
+
+gulp.task('coverage', ['compile'], shell.task(['node ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --compilers js:babel/register']))
