@@ -1,4 +1,4 @@
-import * as gooey from '../dist/index'
+import * as gooey from '../lib/index'
 import should from 'should'
 
 describe('Service', () => {
