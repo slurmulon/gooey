@@ -119,10 +119,10 @@ export class Service {
   /**
    * Creates and registers a publish subsubscription with the Service
    * 
-   * @param {String} path
+   * @param {Topic|String} topic
    * @param {Function} on
    */
-  subscribe(topic: Object = '$', on: Function): Subscription {
+  subscribe(topic = '$', on: Function): Subscription {
     const subscrip = new Subscription(this, topic, on)
 
     this.subscriptions.push(subscrip)
@@ -167,12 +167,12 @@ export class Service {
   /**
    * Alias for subscribe
    * 
-   * @param {String} path
+   * @param {Topic|String} topic
    * @param {Function} on
    * @returns {Subscription}
    */
-  on(path: String, on: Function): Subscription {
-    return this.subscribe(path, on)
+  on(topic, on: Function): Subscription {
+    return this.subscribe(topic, on)
   }
 
   /**
@@ -196,7 +196,7 @@ export class Service {
   }
 
   /**
-   * Determines set of data that matches the provided subsubscription's path/pattern
+   * Determines set of data that matches the provided subsubscription's topic
    * 
    * @param {Object} data
    * @param {Subscription} subscrip
@@ -457,7 +457,7 @@ export class Subscription {
   /**
    * Activates the subsubscription, permitting it to react to topic-based messages
    */
-  activate() {
+  start() {
     this.active = true
   }
 
