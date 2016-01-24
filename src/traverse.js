@@ -18,9 +18,7 @@ export const patterns = {
       return Promise.all(this.children.map(next))
     },
 
-    // bi: function(next)
-
-    // hybrid: function(next, tail)
+    // bi: function(next, tail)
   },
 
   depth: {
@@ -65,13 +63,7 @@ export function step(name, direction, next): Promise {
     }
 
     // last node
-    return new Promise((resolve, reject) => {
-      try {
-        resolve(result)
-      } catch (err) {
-        reject(err)
-      }
-    })
+    return Promise(result)
   } else {
     // WARN/ERROR - unknown traversal
   }

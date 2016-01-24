@@ -96,6 +96,7 @@ export class Service {
    * @param {?String} direction
    * @returns {Promise} deferred service tree traversal(s)
    */
+  // TODO - Allows users to provide a custom collision resolver
   // TODO - Allow users to publish data with a certain key
   // - that way you aren't forced to always write a JsonPath or matcher function for each subscribe / publish
   publish(data, traversal: String = 'breadth', direction: String = 'down'): Promise {
@@ -465,7 +466,7 @@ export class Subscription {
    * For sane debugging
    */
   toString() {
-    return `[gooey.${this.name}]: ${JSON.stringify(this)}`
+    return `[gooey.Service.${this.name}]: ${JSON.stringify(this)}`
   }
 
 }

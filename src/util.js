@@ -14,3 +14,8 @@ export const isEmpty = (x) => !x || Object.keys(x).length === 0
  * Safely merges together N objects (leaves source objects untouched)
  */
 export const mix = () => Object.assign({}, ...arguments)
+
+/**
+ * Default module export
+ */
+export default { is, isEmpty, mix }

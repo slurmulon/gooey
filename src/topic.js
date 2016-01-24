@@ -1,8 +1,7 @@
 'use strict'
 
 import jsonPath from 'jsonpath'
-
-import * as util from './util'
+import {is, isEmpty} from './util'
 
 /**
  * Base topic. Performs simple equality comparison of value to topic
@@ -25,7 +24,7 @@ export class Topic {
    * @return data matching topic key
    */
   matches(data): Array {
-    return util.is(this.key, data) ? [data] : []
+    return is(this.key, data) ? [data] : []
   }
   
   /**
@@ -69,7 +68,7 @@ export class JsonPath extends Topic {
    * @return true
    */
   static appliesTo(data): Boolean {
-    return !util.isEmpty(jsonPath.parse(data))
+    return !isEmpty(jsonPath.parse(data))
   }
 
 }
@@ -84,7 +83,7 @@ export class JsonPath extends Topic {
  * @return identified Topic
  */
 export function identify(data): Topic {
-  if (util.is(data.constructor, String) && JsonPath.appliesTo(data)) {
+  if (is(data.constructor, String) && JsonPath.appliesTo(data)) {
     return new JsonPath(data)
   }
 
