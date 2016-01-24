@@ -461,6 +461,9 @@ export class Subscription {
     this.active = true
   }
 
+  /**
+   * For sane debugging
+   */
   toString() {
     return `[gooey.${this.name}]: ${JSON.stringify(this)}`
   }
