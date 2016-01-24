@@ -26,12 +26,14 @@
     "url": "https://github.com/slurmulon/gooey/issues"
   },
   "devDependencies": {
+    "browserify": "^13.0.0",
     "gulp": "~3.9.0",
     "gulp-babel": "^5.1.0",
     "gulp-shell": "^0.5.1",
     "istanbul": "^0.3.18",
     "mocha": "~2.2.5",
-    "should": "~7.0.2"
+    "should": "~7.0.2",
+    "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
     "jsonpath": "~0.1.8"
