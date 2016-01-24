@@ -9,6 +9,7 @@
 import jsonPath from 'jsonpath'
 
 import * as traversals from './traverse'
+import * as topic from './topic'
 import * as _util from './util'
 
 /**
@@ -23,9 +24,7 @@ const _config = {
   strict: true,
 
   data: {
-    matching: {
-      queries : true
-    },
+    matching: true,
 
     publish: {
       ignore: {
@@ -102,7 +101,7 @@ export class Service {
   publish(data, traversal: String = 'breadth', direction: String = 'down'): Promise {
     return new Promise((resolve, reject) => {
       // ensure data is pure
-      data = Object.assign({}, data)
+      data = data instanceof Object ? Object.assign({}, data) : data
 
       // process data against matching subscribers
       const matches = this.subscriptions.map(subscrip => subscrip.process(data, false))
@@ -110,7 +109,7 @@ export class Service {
       // final result is either converged conflict-resolved subscriber match or cloned source data 
       const result = matches[0] || data
 
-      // traverse service node tree and publish on each "next" node
+      // traverse service node tree and publish result on each "next" node
       return this.traverse(traversal, direction,
         next => next.publish(result, traversal, direction)
       )
@@ -123,8 +122,8 @@ export class Service {
    * @param {String} path
    * @param {Function} on
    */
-  subscribe(path: String = '$', on: Function): Subscription {
-    const subscrip = new Subscription(this, path, on)
+  subscribe(topic: Object = '$', on: Function): Subscription {
+    const subscrip = new Subscription(this, topic, on)
 
     this.subscriptions.push(subscrip)
 
@@ -262,7 +261,7 @@ export class Service {
    * @param {Service} node relative/starting service
    * @returns {Int}
    */
-  depth(node: Service = this): Int {
+  depth(node: Service = this): Number {
     let nodeDepth = 0
 
     while (node.parent) {
@@ -332,7 +331,7 @@ export class Service {
    * @param {Array} nodes service tree to search through (default is global)
    * @returns {Array}
    */
-  static findAtDepth(targetDepth: Int, nodes: Array = []): Array {
+  static findAtDepth(targetDepth: Number, nodes: Array = []): Array {
     const found  = []
     let curDepth = 0
 
@@ -402,18 +401,19 @@ export class Subscription {
    * A topic-based data matcher that reacts to a service's publications
    * 
    * @param {Service} service
-   * @param {String} path topic/pattern to react to (* is wildcard)
+   * @param {String} topic topic/pattern to react to (* is wildcard)
    * @param {Function} on functionality to be triggered on successful match
    */
-  constructor(service: Service, path: String, on: Function) {
+  constructor(service: Service, topic: String, on: Function) {
+    // this.key = key // TODO -> will allow subscriptions to be triggered via simple keys
     this.service = service
-    this.path = path
+    this.topic = topic
     this.on = on
     this.active = true
   }
 
   /**
-   * Determines sub-of data that matches subsubscription path/pattern
+   * Determines data or a subset of data that matches subscription topic
    * 
    * @param {Object} data
    * @returns {Set} data matching subsubscription
@@ -421,16 +421,12 @@ export class Subscription {
   matches(data): Set {
     const matchSet = new Set()
 
-    if (this.active && this.service.config.data.matching.queries) { // FIXME - determine if jsonpath query via regex
-      const jpMatches = jsonPath.query(data, this.path)
+    if (this.active && this.service.config.data.matching) {
+      const topicMatches = topic.identify(this.topic).matches(data)
 
-      if (jpMatches && jpMatches.length) {
-        matchSet.add(...jpMatches)
+      if (!util.isEmpty(topicMatches)) {
+        matchSet.add(...topicMatches)
       }
-    }
-
-    if (data === this.path && !matchSet.contains(data)) {
-      matchSet.add(data)
     }
 
     return matchSet
@@ -465,6 +461,9 @@ export class Subscription {
     this.active = true
   }
 
+  /**
+   * For sane debugging
+   */
   toString() {
     return `[gooey.${this.name}]: ${JSON.stringify(this)}`
   }

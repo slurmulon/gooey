@@ -596,35 +596,49 @@ describe('Subscription', () => {
       service.matches.should.type('function').be.true
     })
 
-    it('should only perform jsonpath matching if the configuration permits (false)', () => {
-      const service     = new gooey.service({name: 'foo', config: {data: {matching: {queries: false} }}})
-      const passiveData = {ignore: true}
-      const results     = []
+    describe('basic', () => {
+      it('should perform simple equality comparison', () => {
+        const service = new gooey.Service('foo')
+        const results = []
 
-      service.subscribe('$.ignore', data => { results.push(data) })
-      service.publish(passiveData)
+        service.subscribe(123, data => results.push(true))
+        service.publish(123)
 
-      results.should.not.containEql(passiveData)
+        results.should.containEql(true)
+      })
     })
 
-    it('should only perform jsonpath matching if the configuration permits (true)', () => {
-      const service    = new gooey.service({name: 'foo', config: {data: {matching: {queries: true} }}})
-      const activeData = {find: true}
-      const results    = []
+    describe('JsonPath', () => {
+      it('should only perform jsonpath matching if the configuration permits (false)', () => {
+        const service     = new gooey.service({name: 'foo', config: {data: {matching: false }}})
+        const passiveData = {ignore: true}
+        const results     = []
 
-      service.subscribe('$.find', data => { results.push(data) })
-      service.publish(activeData)
+        service.subscribe('$.ignore', data => { results.push(data) })
+        service.publish(passiveData)
 
-      results.should.containEql(activeData)
-    })
+        results.should.not.containEql(passiveData)
+      })
 
-    it('should return jsonpath matches from all relevant subscribers', () => {
-      const activeData = {find: 'bar'}
-      const service    = new gooey.service({name: 'foo'})
-      const scription  = service.subscribe('$.find')
-      const matches    = service.matches(activeData, scription)
+      it('should only perform jsonpath matching if the configuration permits (true)', () => {
+        const service    = new gooey.service({name: 'foo', config: {data: {matching: true }}})
+        const activeData = {find: true}
+        const results    = []
 
-      Array.from(matches).should.eql(['bar'])
+        service.subscribe('$.find', data => { results.push(data) })
+        service.publish(activeData)
+
+        results.should.containEql(activeData)
+      })
+
+      it('should return jsonpath matches from all relevant subscribers', () => {
+        const activeData = {find: 'bar'}
+        const service    = new gooey.service({name: 'foo'})
+        const scription  = service.subscribe('$.find')
+        const matches    = service.matches(activeData, scription)
+
+        Array.from(matches).should.eql(['bar'])
+      })
     })
   })
 
