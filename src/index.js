@@ -259,7 +259,7 @@ export class Service {
    * Determines a provided service's depth in the service tree
    * 
    * @param {Service} node relative/starting service
-   * @returns {Int}
+   * @returns {Number} depth of service
    */
   depth(node: Service = this): Number {
     let nodeDepth = 0
@@ -277,7 +277,7 @@ export class Service {
    * 
    * @param {Service} node relative/starting service
    * @param {?Boolean} global return siblings across disjoint trees (true) or siblings in connected hierarchy (false - UNSUPPORTED)
-   * @returns {Int}
+   * @returns {Array} siblings of service
    */
   siblings(node = this, global?: Boolean = false): Array {
     const roots = Service.findRoots()
@@ -327,7 +327,7 @@ export class Service {
   /**
    * Determines and returns the nodes (out of the provided service tree) at the target depth
    * 
-   * @param {Int} targetDepth
+   * @param {Number} targetDepth
    * @param {Array} nodes service tree to search through (default is global)
    * @returns {Array}
    */
