@@ -10,7 +10,7 @@ export const patterns = {
   breadth: {
     up: function(next) {
       return Promise.all(
-        [this.parent].concat(this.parent.siblings(null, true))
+        [this.parent].concat(this.parent.siblings(null, true)).map(next)
       )
     },
 
