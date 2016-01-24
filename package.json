@@ -2,7 +2,7 @@
   "name": "gooey-core",
   "version": "0.0.0",
   "description": "Hierarchical PubSub data synchronization solution for ES6",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "gulp compile",
     "test": "gulp test",
@@ -30,6 +30,7 @@
     "gulp": "~3.9.0",
     "gulp-babel": "^5.1.0",
     "gulp-shell": "^0.5.1",
+    "gulp-uglify": "^1.5.1",
     "istanbul": "^0.3.18",
     "mocha": "~2.2.5",
     "should": "~7.0.2",
