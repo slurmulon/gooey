@@ -5,3 +5,4 @@ coverage/
 coverage.html
 npm-debug.log
 private/
+browser/
