@@ -312,7 +312,7 @@ export class Service {
    * @returns {Array}
    */
   static findRoots(services: Array = _services): Array {
-    return Object.values(services).filter(svc => svc instanceof Service && svc.isRoot())
+    return util.values(services).filter(svc => svc instanceof Service && svc.isRoot())
   }
 
   /**
@@ -322,7 +322,7 @@ export class Service {
    * @returns {Array}
    */
   static findLeafs(services: Array = _services): Array {
-    return Object.values(services).filter(svc => svc instanceof Service && svc.isLeaf())
+    return util.values(services).filter(svc => svc instanceof Service && svc.isLeaf())
   }
 
   /**
@@ -369,7 +369,7 @@ export class Service {
 
       while (!cyclic && !util.isEmpty(curNode.children)) {
         (curNode.children || []).forEach(child => {
-          if (!found.includes(child.name)) {
+          if (!found.indexOf(child.name) >= 0) {
             found.push(child.name)
 
             curNode = child
@@ -389,7 +389,7 @@ export class Service {
    * @returns {Boolean}
    */
   static isRegistered(name: String): Boolean {
-    return Array.from(_services).map(serv => serv.name).includes(name)
+    return Array.from(_services).map(serv => serv.name).indexOf(name) >= 0
   }
 }
 

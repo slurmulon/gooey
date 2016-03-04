@@ -16,6 +16,16 @@ export const isEmpty = (x) => !x || Object.keys(x).length === 0
 export const mix = () => Object.assign({}, ...arguments)
 
 /**
+ * Object.entries "polyfill"
+ */
+export const entries = (obj) => Object.keys(obj).map((key) => [key, obj[key]])
+
+/**
+ * Object.values "polyfill"
+ */
+export const values = (obj) => Object.keys(obj).map((key) => obj[key])
+
+/**
  * Default module export
  */
 export default { is, isEmpty, mix }
