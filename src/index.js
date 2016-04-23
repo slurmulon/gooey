@@ -439,9 +439,9 @@ export class Subscription {
    * 
    * @param {Object} data
    * @param {Boolean} passive return either untouched data on mismatch (true) or null on mismatch (false)
-   * @returns {Object} subsubscription modified data
+   * @returns {} subsubscription modified data
    */
-  process(data, passive: boolean = true): Object {
+  process(data, passive: boolean = true) {
     return this.matches(data).size ? this.on(data) : (passive ? data : null)
   }
 
