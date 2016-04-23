@@ -18,6 +18,8 @@ gulp.task('compile', ['clean'], function() {
     .pipe(gulp.dest('lib'))
 })
 
+// gulp.task('compile', ['clean'], shell.task(['node ./node_modules/.bin/babel src --out-dir lib']))
+
 gulp.task('compress', ['compile'], function() {
   return gulp
     .src('./lib/*.js')
@@ -37,6 +39,6 @@ gulp.task('browserify', ['compress'], function() {
     .pipe(gulp.dest('browser'))
 })
 
-gulp.task('test', ['compile'], shell.task(['node ./node_modules/.bin/_mocha --reporter nyan --compilers js:babel/register test/']))
+gulp.task('test', ['compile'], shell.task(['node ./node_modules/.bin/mocha --reporter nyan --compilers js:babel-core/register test']))
 
-gulp.task('coverage', ['compile'], shell.task(['node ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --compilers js:babel/register']))
+gulp.task('coverage', ['compile'], shell.task(['node ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --compilers js:babel-core/register']))
