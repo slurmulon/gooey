@@ -200,3 +200,4 @@ Gooey is still in its very early stages. Please feel free to message [me@madhax.
 - [ ] `gooey.dom`
 - [ ] `gooey.debug`
 - [ ] `gooey.web` (dependent on `core`, `http`, `dom`, and `debug`)
+- [ ] `hyper.goo` (JSON Hyper-Schema parser)

@@ -33,7 +33,7 @@ export class Topic {
    * @param data {Object}
    * @return true
    */
-  static appliesTo(data): Boolean {
+  static appliesTo(data): boolean {
     return true
   }
 
@@ -67,7 +67,7 @@ export class JsonPath extends Topic {
    * @param data {String}
    * @return true
    */
-  static appliesTo(data): Boolean {
+  static appliesTo(data): boolean {
     return !isEmpty(jsonPath.parse(data))
   }
 

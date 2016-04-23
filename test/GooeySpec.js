@@ -362,7 +362,9 @@ describe('Service', () => {
     it('should invoke `matches` on the provided Subscription', () => {
       const testData  = {foo: 'bar'}
       const service   = new gooey.service({name: 'foo'})
-      const scripStub = {matches: (data) => [data]}
+      const scripStub = Object.create(gooey.Subscription.prototype)
+
+      scripStub.matches = (data) => [data]
 
       gooey.util.is(service.matches(testData, scripStub), [testData]).should.be.true
     })

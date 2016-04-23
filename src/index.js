@@ -49,7 +49,7 @@ export class Service {
    * @param {?Array} children
    * @param {?Object} config
    */
-  constructor(name: String, model?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
+  constructor(name, model?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
     if (Object.is(name, undefined) || Service.isRegistered(name)) {
       throw `Services must have unique names: ${name}`
     }
@@ -99,7 +99,7 @@ export class Service {
   // TODO - Allows users to provide a custom collision resolver
   // TODO - Allow users to publish data with a certain key
   // - that way you aren't forced to always write a JsonPath or matcher function for each subscribe / publish
-  publish(data, traversal: String = 'breadth', direction: String = 'down'): Promise {
+  publish(data, traversal = 'breadth', direction: string = 'down'): Promise {
     return new Promise((resolve, reject) => {
       // ensure data is pure
       data = data instanceof Object ? Object.assign({}, data) : data
@@ -121,9 +121,9 @@ export class Service {
    * Creates and registers a publish subsubscription with the Service
    * 
    * @param {Topic|String} topic
-   * @param {Function} on
+   * @param {?Function} on
    */
-  subscribe(topic = '$', on: Function): Subscription {
+  subscribe(topic = '$', on?: Function = _ => _): Subscription {
     const subscrip = new Subscription(this, topic, on)
 
     this.subscriptions.push(subscrip)
@@ -203,7 +203,7 @@ export class Service {
    * @param {Subscription} subscrip
    * @returns {Set}
    */
-  matches(data, subscrip: Subscription): Set {
+  matches(data, subscrip: Subscription) { // TODO - report issue with flow, value gets coerced to Array
     return subscrip.matches(data)
   }
 
@@ -212,10 +212,10 @@ export class Service {
    * 
    * @param {String} traversal supported values defined by gooey.traverse.patterns
    * @param {String} direction up, down or bi
-   * @param {Function} next
+   * @param {Promise|Function} next
    * @returns {Promise}
    */
-  traverse(traversal: String, direction: String, next: Function): Promise {
+  traverse(traversal: string, direction: string, next): Promise {
     return traversals.step.call(this, traversal, direction, next)
   }
 
@@ -262,7 +262,7 @@ export class Service {
    * @param {Service} node relative/starting service
    * @returns {Number} depth of service
    */
-  depth(node: Service = this): Number {
+  depth(node: Service = this): number {
     let nodeDepth = 0
 
     while (node.parent) {
@@ -280,7 +280,7 @@ export class Service {
    * @param {?Boolean} global return siblings across disjoint trees (true) or siblings in connected hierarchy (false - UNSUPPORTED)
    * @returns {Array} siblings of service
    */
-  siblings(node = this, global?: Boolean = false): Array {
+  siblings(node = this, global?: boolean = false): Array {
     const roots = Service.findRoots()
     const depth = node.depth()
 
@@ -292,7 +292,7 @@ export class Service {
    * 
    * @returns {Boolean}
    */
-  isRoot(): Boolean {
+  isRoot(): boolean {
     return !this.parent
   }
 
@@ -301,7 +301,7 @@ export class Service {
    * 
    * @returns {Boolean}
    */
-  isLeaf(): Boolean {
+  isLeaf(): boolean {
     return !this.children
   }
 
@@ -311,7 +311,7 @@ export class Service {
    * @param {Array} services service tree to search through (default is global)
    * @returns {Array}
    */
-  static findRoots(services: Array = _services): Array {
+  static findRoots(services = _services): Array {
     return util.values(services).filter(svc => svc instanceof Service && svc.isRoot())
   }
 
@@ -321,7 +321,7 @@ export class Service {
    * @param {Array} services service tree to search through (default is global)
    * @returns {Array}
    */
-  static findLeafs(services: Array = _services): Array {
+  static findLeafs(services = _services): Array {
     return util.values(services).filter(svc => svc instanceof Service && svc.isLeaf())
   }
 
@@ -332,7 +332,7 @@ export class Service {
    * @param {Array} nodes service tree to search through (default is global)
    * @returns {Array}
    */
-  static findAtDepth(targetDepth: Number, nodes: Array = []): Array {
+  static findAtDepth(targetDepth: number, nodes: Array = []): Array {
     const found  = []
     let curDepth = 0
 
@@ -357,7 +357,7 @@ export class Service {
    * @param {Array} services service tree to search through (default is global)
    * @returns {Boolean}
    */
-  static cycleExists(services = _services): Boolean {
+  static cycleExists(services: Array = Array.from(_services)): boolean {
     const roots = Service.findRoots(services) || []
     const found = !util.isEmpty(roots) ? roots.map(r => r.name) : []
 
@@ -388,7 +388,7 @@ export class Service {
    * 
    * @returns {Boolean}
    */
-  static isRegistered(name: String): Boolean {
+  static isRegistered(name: string): boolean {
     return Array.from(_services).map(serv => serv.name).indexOf(name) >= 0
   }
 }
@@ -402,10 +402,10 @@ export class Subscription {
    * A topic-based data matcher that reacts to a service's publications
    * 
    * @param {Service} service
-   * @param {String} topic topic/pattern to react to (* is wildcard)
+   * @param {Object} topic topic/pattern to react to ('*' is wildcard)
    * @param {Function} on functionality to be triggered on successful match
    */
-  constructor(service: Service, topic: String, on: Function) {
+  constructor(service: Service, topic, on: Function) {
     // this.key = key // TODO -> will allow subscriptions to be triggered via simple keys
     this.service = service
     this.topic = topic
@@ -441,7 +441,7 @@ export class Subscription {
    * @param {Boolean} passive return either untouched data on mismatch (true) or null on mismatch (false)
    * @returns {Object} subsubscription modified data
    */
-  process(data, passive: Boolean = true): Object {
+  process(data, passive: boolean = true): Object {
     return this.matches(data).size ? this.on(data) : (passive ? data : null)
   }
 
@@ -466,7 +466,7 @@ export class Subscription {
    * For sane debugging
    */
   toString() {
-    return `[gooey.Service.${this.name}]: ${JSON.stringify(this)}`
+    return `[gooey.Service:${this.name}]`
   }
 
 }
@@ -501,4 +501,4 @@ export const clear = () => { _services = new Set() }
 /**
  * Logger for establishing a consistent message format
  */
-export const log = (msg: String, level: String) => `[gooey:${level || 'INFO'}] ${msg}`
+export const log = (msg: string, level: string) => `[gooey:${level || 'INFO'}] ${msg}`
