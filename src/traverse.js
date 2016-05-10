@@ -9,8 +9,10 @@
 export const patterns = {
   breadth: {
     up: function(next) {
+      const siblings = this.parent.siblings(undefined, true)
+
       return Promise.all(
-        [this.parent].concat(this.parent.siblings(null, true)).map(next)
+        [this.parent].concat(siblings).map(next)
       )
     },
 
@@ -48,17 +50,25 @@ export const patterns = {
  * @param direction {String}
  * @param next {Function}
  */
-export function step(name, direction, next): Promise {
+export function step(name, direction, next, path = []): Promise {
   const traversal = patterns[name][direction]
 
   if (traversal) {
-    const canNext = direction && {
+    const canNext = direction && !!{
       up   : () => this.parent,
       down : () => this.children.length
     }[direction]()
 
+    console.log('DAT PATH', path)
+
+    const canPath = path.length === 0 || !path.indexOf(this.name)
+
+    console.log('INDEX OF', this.name, path.indexOf(this.name))
+
     // inner node
-    if (canNext) {
+    if (canNext && canPath) {
+      path.push(this.name)
+
       return traversal.call(this, next)
     }
 

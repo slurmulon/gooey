@@ -170,20 +170,38 @@ describe('Service', () => {
       })
     })
 
-    xdescribe('when traversal is `breadth` and direction is `up`', () => {
+    describe('when traversal is `breadth` and direction is `up`', () => {
       it('should traverse all nodes sharing the depth (siblings) of the parent service (including parent)', () => {
-        // TODO
-        const a1 = new gooey.Service('A1')
-        const a2 = new gooey.Service('A2')
+        const testData = {foundBy: []}
+        const testTopic = '$'
+
+        const a1 = new gooey.service({name: 'A1'})
+        const a2 = new gooey.service({name: 'A2'})
         const a1b1 = new gooey.service({name: 'A1B1', parent: a1})
         const a1b2 = new gooey.service({name: 'A1B2', parent: a1})
         const a2b1 = new gooey.service({name: 'A2B1', parent: a2})
         const a2b2 = new gooey.service({name: 'A2B2', parent: a2})
         const a1b1c1 = new gooey.service({name: 'A1B1C1', parent: a1b1})
 
-        a1b1c1.publish({foo: 'bar'}, 'breadth', 'up').then(result => {
+        const services = gooey.services()
 
+        Object.keys(services).forEach(key => {
+          const service = services[key]
+
+          service.subscribe(testTopic, (data) => {
+            console.log('SUBSCRIPTION MATCHED: ', service.name)
+            console.log('WUT', data)
+            data.foundBy.push(service.name)
+
+            return data
+          })
         })
+
+        a1b1c1.publish(testData, 'breadth', 'up').then(result => {
+          console.log('!!!!!!!! DERRRRRRRP', result)
+        })
+
+        console.log('STEPS YO', testData)
       })
     })
 
