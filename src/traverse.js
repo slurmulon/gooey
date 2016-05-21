@@ -8,24 +8,37 @@
  */
 export const patterns = {
   breadth: {
-    up: function(next) {
+    // FIXME - redo this bit, don't need to call `next` on every single node (they don't all need to report up to their parents)
+    up: function(next, path) {
+      const stepper = (node) => next(node, path)
+
+      // FIXME - super inefficient, read Beamer paper
+      // couple of options:
+      // - keep this and don't care if some nodes are visited more than once
+      // - integrate Beamer's bottom-up BFS algorithm
+      // - build a map of depth -> services, iterating through each depth sequentially (nodes at each depth async)
       const siblings = this.parent.siblings(undefined, true)
 
       return Promise.all(
-        [this.parent].concat(siblings).map(next)
+        [this.parent].concat(siblings).map(stepper)
       )
     },
 
-    down: function(next) {
-      return Promise.all(this.children.map(next))
+    down: function(next, path) {
+      const stepper = (node) => next(node, path)
+
+      return Promise.all(this.children.map(stepper))
     },
 
+    // http://www.cs.berkeley.edu/~sbeamer/beamer-sc2012.pdf
     // bi: function(next, tail)
   },
 
   depth: {
-    down: function(next) {
-      return this.children.map(next)
+    down: function(next, path) {
+      const stepper = (node) => next(node, path)
+
+      return this.children.map(stepper)
     }
   }
 
@@ -50,7 +63,7 @@ export const patterns = {
  * @param direction {String}
  * @param next {Function}
  */
-export function step(name, direction, next, path = []): Promise {
+export function step(name: string, direction: string, next: Function, path: Array = []): Promise {
   const traversal = patterns[name][direction]
 
   if (traversal) {
@@ -59,17 +72,13 @@ export function step(name, direction, next, path = []): Promise {
       down : () => this.children.length
     }[direction]()
 
-    console.log('DAT PATH', path)
-
-    const canPath = path.length === 0 || !path.indexOf(this.name)
-
-    console.log('INDEX OF', this.name, path.indexOf(this.name))
+    const canPath = path.length === 0 || !~path.indexOf(this.name)
 
     // inner node
     if (canNext && canPath) {
       path.push(this.name)
 
-      return traversal.call(this, next)
+      return traversal.call(this, next, path)
     }
 
     // last node

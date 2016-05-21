@@ -1,6 +1,7 @@
 'use strict'
 
 import jsonPath from 'jsonpath'
+import * as jsonRel from 'json-rel'
 import {is, isEmpty} from './util'
 
 /**
@@ -43,6 +44,7 @@ export class Topic {
  * JsonPath (similar to XPath) query topics
  */
 export class JsonPath extends Topic {
+// export class JsonRelTopic extends Topic {
 
   /**
    * @param key {String} valid JsonPath query string 
@@ -59,6 +61,7 @@ export class JsonPath extends Topic {
    */
   matches(data): Array {
     return jsonPath.query(data, this.key)
+    // return jsonRel.$(this.key, data).get()
   }
 
   /**
@@ -68,7 +71,10 @@ export class JsonPath extends Topic {
    * @return true
    */
   static appliesTo(data): boolean {
+    // console.log('---- wut', this.key)
+    // jsonRel.AbstractRelSpec.identify()
     return !isEmpty(jsonPath.parse(data))
+    // return !!jsonRel.which(data)
   }
 
 }
@@ -88,4 +94,10 @@ export function identify(data): Topic {
   }
 
   return new Topic(data)
+
+  // if (is(data.constructor, String) && JsonRelTopic.appliesTo(data)) {
+  //   return new JsonRelTopic(data)
+  // }
+
+  // return new Topic(data)
 }

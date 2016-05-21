@@ -219,7 +219,7 @@ export class Service {
    * @returns {Promise}
    */
   traverse(traversal: string, direction: string, next: Function, path: Array): Promise {
-    return traversals.step.call(this, traversal, direction, next)
+    return traversals.step.call(this, traversal, direction, next, path)
   }
 
   /**

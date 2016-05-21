@@ -189,8 +189,6 @@ describe('Service', () => {
           const service = services[key]
 
           service.subscribe(testTopic, (data) => {
-            console.log('SUBSCRIPTION MATCHED: ', service.name)
-            console.log('WUT', data)
             data.foundBy.push(service.name)
 
             return data
@@ -198,7 +196,7 @@ describe('Service', () => {
         })
 
         a1b1c1.publish(testData, 'breadth', 'up').then(result => {
-          console.log('!!!!!!!! DERRRRRRRP', result)
+          return result
         })
 
         console.log('STEPS YO', testData)
