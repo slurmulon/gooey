@@ -8,31 +8,20 @@
  */
 export const patterns = {
   breadth: {
-    // FIXME - redo this bit, don't need to call `next` on every single node (they don't all need to report up to their parents)
     up: function(next, data, frontier) {
       const stepper = (node) => next(node, data, frontier)
 
-      // FIXME - super inefficient, read Beamer paper
-      // couple of options:
+      // FIXME - scan for sibblings is inefficient (n2), read Beamer paper
+      // couple of options to research more:
       // - keep this and don't care if some nodes are visited more than once
-      // - integrate Beamer's bottom-up BFS algorithm
+      // - integrate Beamer's bottom-up BFS algorithm (has its own noted issues)
       // - build a map of depth -> services, iterating through each depth sequentially (nodes at each depth async)
-      // - * if a node has an immediate sibling (same parent), ensure only 1 next call to the parent is made across all children (aka siblings of "next" up node)
+      // - if a node has an immediate sibling (same parent), ensure only 1 next call to the parent is made across all children (aka siblings of "next" up node)
       const siblings = this.parent.siblings(undefined, true)
 
-      console.log('--- das frontier', frontier)
-      console.log('--- siblings', siblings)
-      console.log('!!! parent', this.parent)
-
-      const nodes = [this.parent].concat(siblings).map(stepper) // TODO - uniq against frontier
-
-      // frontier = [...Set(nodes)]
+      const nodes = [this.parent].concat(siblings).map(stepper)
 
       return Promise.all(nodes)
-
-      // return Promise.all(
-      //   [this.parent].concat(siblings).map(stepper)
-      // )
     },
 
     down: function(next, data, frontier) {
@@ -49,7 +38,7 @@ export const patterns = {
     down: function(next, data, frontier) {
       const stepper = (node) => next(node, data, frontier)
 
-      return this.children.map(stepper)
+      return Promise.all(this.children.map(stepper))
     }
   }
 
@@ -72,7 +61,9 @@ export const patterns = {
  *
  * @param name {String}
  * @param direction {String}
+ * @param data {*}
  * @param next {Function}
+ * @returns {Promise}
  */
 export function step(name: string, direction: string, data, action: Function, next: Function, frontier: Array = []): Promise {
   const traversal = patterns[name][direction]
@@ -85,27 +76,21 @@ export function step(name: string, direction: string, data, action: Function, ne
 
     const canAddToFrontier = frontier.length === 0 || !~frontier.indexOf(this.name)
 
-    console.log('\n\ncan frontier?', canAddToFrontier, frontier, this.name)
-
-    // const result = action(data) // WORKS (with dups)
-
-    // inner node
-    // if (canNext && canAddToFrontier) { // WORKS (with dups)
+    // visit current service node via `action`
     if (canAddToFrontier) {
-      frontier.push(this.name) // WORKS - but the problem is that the subscription gets called before the service is added to the frontier
+      const result = action(data)
 
-      console.log('starting traversal (pushed)', this.name)
-      const result = action(data) // FAILS
+      // once result is aquired, add service to frontier
+      frontier.push(this.name)
 
+      // progress to next traversal step if necessary
       return canNext ? traversal.call(this, next, result, frontier) : Promise(result)
-
-      // return traversal.call(this, next, result, frontier)
     }
 
-    // last node (no operation)
-    return Promise(result) //nooped
+    // unvisited node result
+    return Promise(result)
   } else {
-    // WARN/ERROR - unknown traversal
+    return Promise(result).reject('unknown traversal')
   }
 }
 

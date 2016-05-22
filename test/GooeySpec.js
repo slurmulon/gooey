@@ -6,10 +6,6 @@ describe('Service', () => {
   beforeEach(gooey.clear)
 
   describe('constructor', () => {
-    it('should be a defined method', () => {
-      gooey.Service.constructor.should.type('function').be.true
-    })
-
     it('should not allow services to be defined without a name', () => {
       gooey.service.should.throw()
     })
@@ -46,7 +42,7 @@ describe('Service', () => {
     })
 
     // FIXME
-    xit('should prevent services with cyclic relationships from being established (in strict mode)', () => {
+    xit('should prevent services with cyclic relationships from being established', () => {
       const serviceA = new gooey.Service('A')
       const serviceB = new gooey.service({name: 'B', parent: serviceA})
       const serviceC = (() => {
@@ -71,12 +67,6 @@ describe('Service', () => {
   })
 
   describe('publish', () => {
-    it('should be a defined method', () => {
-      const service = new gooey.Service('foo')
-
-      service.publish.should.type('function').be.true
-    })
-
     it('should error if an invalid traversal pattern is provided', () => {
       new gooey.Service('foo').publish('bar', 'crazy').should.be.rejected
     })
@@ -189,18 +179,40 @@ describe('Service', () => {
           const service = services[key]
 
           service.subscribe(testTopic, (data) => {
-            console.log('\t\tlocated', data)
             data.foundBy.push(service.name)
 
             return data
           })
         })
 
-        a1b1c1.publish(testData, 'breadth', 'up').then(result => {
+        const result = a1b1c1.publish(testData, 'breadth', 'up').then(result => {
           return result
         })
 
-        console.log('STEPS YO', testData)
+        // TODO - export this to util or something
+        const isUnique = (arr = []) => {
+          const cache   = {}
+          const results = []
+
+          arr.forEach((elem, i) => {
+            if (cache[elem] === true) {
+              results.push(elem)
+            } else {
+              cache[elem] = true
+            }
+          })
+
+          return !results.length
+        }
+
+        // FIXME - switch to chaiAsPromised, the following assertions should work but have no effect whatsoever
+        // result.should.be.finally.equal(testData.foundBy)
+
+        // result.should.eventually.containEql(Object.keys(services))
+
+        // testData.foundBy.should.include(Object.keys(services))
+
+        isUnique(testData.foundBy).should.be.true()
       })
     })
 
@@ -246,12 +258,6 @@ describe('Service', () => {
   })
 
   describe('subscribe', () => {
-    it('should be a defined method', () => {
-      const service = new gooey.Service('foo')
-
-      service.subscribe.should.type('function').be.true
-    })
-
     it('should create a subscription and return it', () => {
       let works     = false
       const service = new gooey.Service('foo')
@@ -261,7 +267,7 @@ describe('Service', () => {
 
       service.update({any: 'thing'})
 
-      works.should.be.true
+      works.should.be.true()
     })
 
     it('should register the subscription with the Service upon creation', () => {
@@ -278,12 +284,6 @@ describe('Service', () => {
   })
 
   describe('unsubscribe', () => {
-    it('should be a defined method', () => {
-      const service = new gooey.Service('foo')
-
-      service.unsubscribe.should.type('function').be.true
-    })
-
     it('should remove the subscription from the service', () => {
       const service = new gooey.Service('foo')
       const scrip   = service.subscribe('$', (data) => {
@@ -307,22 +307,37 @@ describe('Service', () => {
       service.unsubscribe(scrip)
       service.update({pass: true})
 
-      scrip.active.should.be.false
+      scrip.active.should.be.false()
 
       service.state.should.have.ownProperty('pass')
       service.state.should.not.have.ownProperty('fail')
     })
 
-    it('should freeze the object to prevent further mutation', () => {
+    it('should freeze the subscription to prevent further mutation when freeze is set to true', () => {
       const service = new gooey.Service('foo')
       const scrip   = service.subscribe('$', (data) => {
         data.fail = true
       })
 
-      service.unsubscribe(scrip)
+      service.unsubscribe(scrip, true)
       service.update({pass: true})
 
-      Object.isFrozen(scrip).should.be.true      
+      Object.isFrozen(scrip).should.be.true()
+
+      service.state.should.have.ownProperty('pass')
+      service.state.should.not.have.ownProperty('fail')
+    })
+
+    it('should not freeze the subscription when freeze is set to false', () => {
+      const service = new gooey.Service('foo')
+      const scrip   = service.subscribe('$', (data) => {
+        data.fail = true
+      })
+
+      service.unsubscribe(scrip, false)
+      service.update({pass: true})
+
+      Object.isFrozen(scrip).should.be.false()
 
       service.state.should.have.ownProperty('pass')
       service.state.should.not.have.ownProperty('fail')
@@ -330,12 +345,6 @@ describe('Service', () => {
   })
 
   describe('update', () => {
-    it('should be a defined method', () => {
-      const service = new gooey.Service('foo')
-
-      service.update.should.type('function').be.true
-    })
-
     it('should update the Service\'s canonical source of data and publish the change', () => {
       const testData = {foo: 'bar'}
       const service  = new gooey.Service('parent')
@@ -347,18 +356,12 @@ describe('Service', () => {
       const update = service.use(testData, data => {
         data.updated = true
       }).then(() => {
-        testData.should.eql({foo: 'bar', matched: true, updated: true})
+        testData.should.eql({foo: 'bar', matched: true, updated: true}) // FIXME - should doesn't asser this
       })
     })
   })
 
   describe('merge', () => {
-    it('should be a defined method', () => {
-      const service = new gooey.Service('foo')
-
-      service.merge.should.type('function').be.true
-    })
-
     it('should merge, update and then publish the provided data', () => {
       const service = new gooey.Service('foo')
 
@@ -370,12 +373,6 @@ describe('Service', () => {
   })
 
   describe('matches', () => {
-    it('should be a defined method', () => {
-      const service = new gooey.Service('foo')
-
-      service.matches.should.type('function').be.true
-    })
-
     it('should invoke `matches` on the provided Subscription', () => {
       const testData  = {foo: 'bar'}
       const service   = new gooey.service({name: 'foo'})
@@ -383,65 +380,37 @@ describe('Service', () => {
 
       scripStub.matches = (data) => [data]
 
-      gooey.util.is(service.matches(testData, scripStub), [testData]).should.be.true
+      const result = service.matches(testData, scripStub)
+
+      result.should.containEql(testData)
     })
   })
 
   describe('function aliases', () => {
     describe('on', () => {
-      it('should be a defined method', () => {
-        const service = new gooey.Service('foo')
-
-        service.on.should.type('function').be.true
-      })
-
       // TODO
     })
 
     describe('use', () => {
-      it('should be a defined method', () => {
-        const service = new gooey.Service('foo')
-
-        service.use.should.type('function').be.true
-      })
-
       // TODO
     })
 
     describe('up', () => {
-      it('should be a defined method', () => {
-        const service = new gooey.Service('foo')
-
-        service.up.should.type('function').be.true
-      })
-
       // TODO
     })
   })
 
-  describe('relateTo', () => {
-    it('should be a defined method', () => {
-      const service = new gooey.Service('foo')
-
-      service.relateTo.should.type('function').be.true
-    })
-
-    it('should prevent services with cyclic relationships from being established', () => {
+  xdescribe('relateTo', () => {
+    xit('should prevent services with cyclic relationships from being established', () => {
       // TODO
     })
 
-    it('should relate the provided service as a child only if the proposed relationship is acyclic', () => {
+    xit('should relate the provided service as a child only if the proposed relationship is acyclic', () => {
       // TODO
     })
   })
 
   describe('relateToAll', () => {
-    it('should be a defined method', () => {
-      const service = new gooey.Service('foo')
-
-      service.relateToAll.should.type('function').be.true
-    })
-
     it('should relate each provided service as a parent', () => {
       const parent = new gooey.Service('parent')
       const child1 = new gooey.Service('child1')
@@ -455,12 +424,6 @@ describe('Service', () => {
   })
 
   describe('isRoot', () => {
-    it('should be a defined method', () => {
-      const service = new gooey.Service('foo')
-
-      service.isRoot.should.type('function').be.true
-    })
-
     it('should determine if service is a root in the tree', () => {
       const root = new gooey.Service('root')
 
@@ -474,12 +437,6 @@ describe('Service', () => {
   })
 
   describe('isLeaf', () => {
-    it('should be a defined method', () => {
-      const service = new gooey.Service('foo')
-
-      service.isLeaf.should.type('function').be.true
-    })
-
     it('should return true for orphan nodes', () => {
        new gooey.Service('orphan').isLeaf().should.be.true
     })
@@ -506,29 +463,15 @@ describe('Service', () => {
 
   })
 
-  describe('findRoots', () => {
-    it('should be a defined method', () => {
-      gooey.Service.findRoots.should.type('function').be.true
-    })
-
+  xdescribe('findRoots', () => {
     // TODO
   })
 
   describe('findLeafs', () => {
-    it('should be a defined method', () => {
-      gooey.Service.findLeafs.should.type('function').be.true
-    })
-
     // TODO
   })
 
   describe('depth', () => {
-    it('should be a defined method', () => {
-      const service = new gooey.Service('foo')
-
-      service.depth.should.type('function').be.true
-    })
-
     it('should return the Service\'s depth in the tree hierarchy', () => {
       const parent = new gooey.Service('parent')
       const child1 = new gooey.service({name: 'child',  parent: parent})
@@ -542,12 +485,6 @@ describe('Service', () => {
     })
 
     describe('siblings', () => {
-      it('should be a defined method', () => {
-        const service = new gooey.Service('foo')
-
-        service.siblings.should.type('function').be.true
-      })
-
       describe('global search', () => {
         it('should return all services in the hierarchy with the same depth, excluding the initiating service', () => {
           const parent = new gooey.Service('parent')
@@ -568,19 +505,15 @@ describe('Service', () => {
 
       xdescribe('local search', () => {
         it('should return all service in the hierarchy with the same immediate parent', () => {
-
+          // TODO
         })
       })
     })
   })
 
   describe('cycleExists', () => {
-    it('should be a defined method', () => {
-      gooey.Service.cycleExists.should.type('function').be.true
-    })
-
-    it('should return true if there are any cycles in the tree (non-strict mode)', () => {
-      const serviceA = new gooey.service({name: 'A', config: {strict: false}})
+    it('should return true if there are any cycles in the tree', () => {
+      const serviceA = new gooey.service({name: 'A'})
       const serviceB = new gooey.service({name: 'B', parent: serviceA})
       const serviceC = new gooey.service({name: 'C', parent: serviceB, children: [serviceA]})
 
@@ -602,19 +535,11 @@ describe('Subscription', () => {
 
   beforeEach(gooey.clear)
 
-  describe('constructor', () => {
-    it('should be a defined method', () => {
-      gooey.Subscription.constructor.should.type('function').be.true
-    })
+  xdescribe('constructor', () => {
+    // TODO
   })
 
   describe('matches', () => {
-    it('should be a defined method', () => {
-      const service = new gooey.Service('foo')
-
-      service.matches.should.type('function').be.true
-    })
-
     describe('basic', () => {
       it('should perform simple equality comparison', () => {
         const service = new gooey.Service('foo')
@@ -639,7 +564,7 @@ describe('Subscription', () => {
         results.should.not.containEql(passiveData)
       })
 
-      it('should only perform jsonpath matching if the configuration permits (true)', () => {
+      it('should only perform json-rel matching if the configuration permits (true)', () => {
         const service    = new gooey.service({name: 'foo', config: {data: {matching: true }}})
         const activeData = {find: true}
         const results    = []
@@ -650,7 +575,7 @@ describe('Subscription', () => {
         results.should.containEql(activeData)
       })
 
-      it('should return jsonpath matches from all relevant subscribers', () => {
+      it('should return json-rel matches from all relevant subscribers', () => {
         const activeData = {find: 'bar'}
         const service    = new gooey.service({name: 'foo'})
         const scription  = service.subscribe('$.find')

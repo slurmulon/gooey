@@ -52,7 +52,7 @@ export class JsonRelTopic extends Topic {
   }
 
   /**
-   * Determines the set / subset of data that matches JsonPath
+   * Determines the set / subset of data that matches JsonRel
    *
    * @param data {Object} 
    * @return data set matching JsonRel
