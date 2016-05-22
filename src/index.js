@@ -98,7 +98,7 @@ export class Service {
   // TODO - Allows users to provide a custom collision resolver
   // TODO - Allow users to publish data with a certain key
   // - that way you aren't forced to always write a json-rel matcher or function for each subscribe / publish
-  publish(data, traversal = 'breadth', direction: string = 'down', frontier: Array = []): Promise {
+  publish(data, traversal: string = 'breadth', direction: string = 'down', frontier: Array = []): Promise {
     return new Promise((resolve, reject) => {
       // ensure data is pure
       data = data instanceof Object ? Object.assign({}, data) : data

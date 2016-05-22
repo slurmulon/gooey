@@ -25,7 +25,5 @@ export const entries = (obj) => Object.keys(obj).map((key) => [key, obj[key]])
  */
 export const values = (obj) => Object.keys(obj).map((key) => obj[key])
 
-/**
- * Default module export
- */
-export default { is, isEmpty, mix }
+
+export default { is, isEmpty, mix, entries, values }

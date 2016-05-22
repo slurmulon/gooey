@@ -130,7 +130,4 @@ export function add(pattern) {
   Object.assign(patterns, pattern)
 }
 
-/**
- * Allow pattern pool and step function to be accessible
- */
-export default { patterns, step }
+export default { patterns, step, add }

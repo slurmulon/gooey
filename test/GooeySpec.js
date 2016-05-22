@@ -351,10 +351,14 @@ describe('Service', () => {
 
       const scrip = service.on('$.foo', data => {
         data.matched = true
+
+        return data
       })
 
-      const update = service.use(testData, data => {
+      const update = service.use(testData).then(data => {
         data.updated = true
+
+        return data
       }).then(() => {
         testData.should.eql({foo: 'bar', matched: true, updated: true}) // FIXME - should doesn't asser this
       })

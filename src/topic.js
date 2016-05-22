@@ -89,3 +89,6 @@ export function identify(data): Topic {
 
   return new Topic(data)
 }
+
+
+export default { Topic, JsonRelTopic, identify }
