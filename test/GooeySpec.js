@@ -249,7 +249,7 @@ describe('Service', () => {
     })
 
     xit('should be able to properly synchronize identical publish events that are being executed concurrently', () => {
-      // TODO
+      // TODO - should be ready for testing
     })
 
     xit('should traverse the service tree using a hamiltonian path', () => {
@@ -387,15 +387,18 @@ describe('Service', () => {
   })
 
   describe('function aliases', () => {
-    describe('on', () => {
+    xdescribe('on', () => {
+      // TODO
+      const service = new gooey.service({name: 'foo'})
+
+      service.on('*', () => 'works')
+    })
+
+    xdescribe('use', () => {
       // TODO
     })
 
-    describe('use', () => {
-      // TODO
-    })
-
-    describe('up', () => {
+    xdescribe('up', () => {
       // TODO
     })
   })
