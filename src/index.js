@@ -103,18 +103,24 @@ export class Service {
       // ensure data is pure
       data = data instanceof Object ? Object.assign({}, data) : data
 
-      // process data against matching subscribers
-      const matches = this.subscriptions.map(subscrip => subscrip.process(data, false))
+      const action = (data) => {
+        const matches = this.subscriptions.map(subscrip => subscrip.process(data, false))
 
-      // final result is either converged conflict-resolved subscriber match or cloned source data 
-      const result = matches[0] || data
+        return matches[0] || data
+      }
+
+      // // process data against matching subscribers
+      // const matches = this.subscriptions.map(subscrip => subscrip.process(data, false))
+
+      // // final result is either converged conflict-resolved subscriber match or cloned source data 
+      // const result = matches[0] || data
 
       // recursively calls publish on next node (lazily evalutated during tree traversal)
-      const next = (next) => next.publish(result, traversal, direction, frontier)
+      const next = (node, result, frontier) => node.publish(result, traversal, direction, frontier)
 
       // traverse service node tree and publish result on each "next" node
       return this.traverse(
-        traversal, direction, next, frontier
+        traversal, direction, data, action, next, frontier
       )
     })
   }
@@ -218,8 +224,8 @@ export class Service {
    * @param {Promise|Function} next
    * @returns {Promise}
    */
-  traverse(traversal: string, direction: string, next: Function, frontier: Array): Promise {
-    return traversals.step.call(this, traversal, direction, next, frontier)
+  traverse(traversal: string, direction: string, data, action: Function, next: Function, frontier: Array): Promise {
+    return traversals.step.call(this, traversal, direction, data, action, next, frontier)
   }
 
   /**

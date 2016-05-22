@@ -9,8 +9,8 @@
 export const patterns = {
   breadth: {
     // FIXME - redo this bit, don't need to call `next` on every single node (they don't all need to report up to their parents)
-    up: function(next, frontier) {
-      const stepper = (node) => next(node, frontier)
+    up: function(next, data, frontier) {
+      const stepper = (node) => next(node, data, frontier)
 
       // FIXME - super inefficient, read Beamer paper
       // couple of options:
@@ -35,8 +35,8 @@ export const patterns = {
       // )
     },
 
-    down: function(next, frontier) {
-      const stepper = (node) => next(node, frontier)
+    down: function(next, data, frontier) {
+      const stepper = (node) => next(node, data, frontier)
 
       return Promise.all(this.children.map(stepper))
     },
@@ -46,8 +46,8 @@ export const patterns = {
   },
 
   depth: {
-    down: function(next, frontier) {
-      const stepper = (node) => next(node, frontier)
+    down: function(next, data, frontier) {
+      const stepper = (node) => next(node, data, frontier)
 
       return this.children.map(stepper)
     }
@@ -74,7 +74,7 @@ export const patterns = {
  * @param direction {String}
  * @param next {Function}
  */
-export function step(name: string, direction: string, next: Function, frontier: Array = []): Promise {
+export function step(name: string, direction: string, data, action: Function, next: Function, frontier: Array = []): Promise {
   const traversal = patterns[name][direction]
 
   if (traversal) {
@@ -85,19 +85,25 @@ export function step(name: string, direction: string, next: Function, frontier: 
 
     const canAddToFrontier = frontier.length === 0 || !~frontier.indexOf(this.name)
 
-    // console.log('\n\ncan frontier?', canfrontier, frontier, this.name)
+    console.log('\n\ncan frontier?', canAddToFrontier, frontier, this.name)
+
+    // const result = action(data) // WORKS (with dups)
 
     // inner node
-    if (canNext && canAddToFrontier) {
+    // if (canNext && canAddToFrontier) { // WORKS (with dups)
+    if (canAddToFrontier) {
       frontier.push(this.name) // WORKS - but the problem is that the subscription gets called before the service is added to the frontier
 
-      // console.log('starting traversal (pushed)', this.name)
+      console.log('starting traversal (pushed)', this.name)
+      const result = action(data) // FAILS
 
-      return traversal.call(this, next, frontier)
+      return canNext ? traversal.call(this, next, result, frontier) : Promise(result)
+
+      // return traversal.call(this, next, result, frontier)
     }
 
-    // last node
-    return Promise(result)
+    // last node (no operation)
+    return Promise(result) //nooped
   } else {
     // WARN/ERROR - unknown traversal
   }
