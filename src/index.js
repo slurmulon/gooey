@@ -87,18 +87,18 @@ export class Service {
   }
 
   /**
-   * Traverses service tree via a conflict-free path and matches subscribers against the published data
+   * Traverses service tree via a conflict-free frontier and matches subscribers against the published data
    * 
    * @param {Object} data
    * @param {?String} traversal
    * @param {?String} direction
-   * @param {?Array} path tracks all services encountered during publication
+   * @param {?Array} frontier tracks all services encountered during publication
    * @returns {Promise} deferred service tree traversal(s)
    */
   // TODO - Allows users to provide a custom collision resolver
   // TODO - Allow users to publish data with a certain key
-  // - that way you aren't forced to always write a JsonPath or matcher function for each subscribe / publish
-  publish(data, traversal = 'breadth', direction: string = 'down', path: Array = []): Promise {
+  // - that way you aren't forced to always write a Jsonfrontier or matcher function for each subscribe / publish
+  publish(data, traversal = 'breadth', direction: string = 'down', frontier: Array = []): Promise {
     return new Promise((resolve, reject) => {
       // ensure data is pure
       data = data instanceof Object ? Object.assign({}, data) : data
@@ -110,11 +110,11 @@ export class Service {
       const result = matches[0] || data
 
       // recursively calls publish on next node (lazily evalutated during tree traversal)
-      const next = (next) => next.publish(result, traversal, direction, path)
+      const next = (next) => next.publish(result, traversal, direction, frontier)
 
       // traverse service node tree and publish result on each "next" node
       return this.traverse(
-        traversal, direction, next, path
+        traversal, direction, next, frontier
       )
     })
   }
@@ -214,12 +214,12 @@ export class Service {
    * 
    * @param {String} traversal supported values defined by gooey.traverse.patterns
    * @param {String} direction up, down or bi
-   * @param {?Array} path tracks all services encountered during publication
+   * @param {?Array} frontier tracks all services encountered during publication
    * @param {Promise|Function} next
    * @returns {Promise}
    */
-  traverse(traversal: string, direction: string, next: Function, path: Array): Promise {
-    return traversals.step.call(this, traversal, direction, next, path)
+  traverse(traversal: string, direction: string, next: Function, frontier: Array): Promise {
+    return traversals.step.call(this, traversal, direction, next, frontier)
   }
 
   /**

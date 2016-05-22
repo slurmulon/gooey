@@ -189,6 +189,7 @@ describe('Service', () => {
           const service = services[key]
 
           service.subscribe(testTopic, (data) => {
+            console.log('\t\tlocated', data)
             data.foundBy.push(service.name)
 
             return data
