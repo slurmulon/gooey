@@ -8,7 +8,15 @@
  */
 export const patterns = {
   breadth: {
-    up: function(next, data, frontier) {
+    /**
+     * Performs Breadth-First Search (leafs -> roots)
+     *
+     * @param {Function} next stepper function to map on next set of nodes
+     * @param {*} data
+     * @param {Array} frontier list of visited nodes in traversal
+     * @returns {Promise} asynchronous mapping of node "steps"
+     */
+    up: function(next: Function, data, frontier) {
       const stepper = (node) => next(node, data, frontier)
 
       // FIXME - scan for sibblings is inefficient (n2), read Beamer paper
@@ -24,6 +32,14 @@ export const patterns = {
       return Promise.all(nodes)
     },
 
+    /**
+     * Performs Breadth-First Search (roots -> leafs)
+     *
+     * @param {Function} next stepper function to map on next set of nodes
+     * @param {*} data
+     * @param {Array} frontier list of visited nodes in traversal
+     * @returns {Promise} asynchronous mapping of node "steps"
+     */
     down: function(next, data, frontier) {
       const stepper = (node) => next(node, data, frontier)
 
@@ -35,6 +51,14 @@ export const patterns = {
   },
 
   depth: {
+    /**
+     * Performs Depth-First Search (roots -> leafs)
+     *
+     * @param {Function} next stepper function to map on next set of nodes
+     * @param {*} data
+     * @param {Array} frontier list of visited nodes in traversal
+     * @returns {Promise} asynchronous mapping of node "steps"
+     */
     down: function(next, data, frontier) {
       const stepper = (node) => next(node, data, frontier)
 
@@ -59,10 +83,11 @@ export const patterns = {
  * Patterns are strongly encouraged to strictly utilize
  * `Promise`s although it's technically not required.
  *
- * @param name {String}
- * @param direction {String}
- * @param data {*}
- * @param next {Function}
+ * @param {String} name `breadth` or `depth`
+ * @param {String} direction `up`, `down` or `bi`
+ * @param {*} data
+ * @param {Function} action function to invoke against data on each step
+ * @param {Function} next function to invoke next after node is visited (typically `publish`)
  * @returns {Promise}
  */
 export function step(name: string, direction: string, data, action: Function, next: Function, frontier: Array = []): Promise {
@@ -80,7 +105,7 @@ export function step(name: string, direction: string, data, action: Function, ne
     if (canAddToFrontier) {
       const result = action(data)
 
-      // once result is aquired, add service to frontier
+      // once result is acquired, add service name to frontier
       frontier.push(this.name)
 
       // progress to next traversal step if necessary

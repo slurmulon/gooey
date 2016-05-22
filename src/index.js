@@ -455,7 +455,7 @@ export class Subscription {
    * Unsubscribes a subsubscription from its service and mark it as inactive.
    * Subscription will not react to any messages from service until activated again.
    *
-   * @param {Boolean?} freeze the object after unsubscription, preventing any further changes to Subscription
+   * @param {?Boolean} freeze the object after unsubscription, preventing any further changes to Subscription
    */
   end(freeze?: boolean = false) {
     this.service.subscriptions.splice(this.service.subscriptions.indexOf(this), 1)
