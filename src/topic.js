@@ -68,7 +68,7 @@ export class JsonRelTopic extends Topic {
    * @return true
    */
   static appliesTo(data): boolean {
-    return is(jsonRel.which(data), undefined)
+    return !!jsonRel.which(data)
   }
 
 }
