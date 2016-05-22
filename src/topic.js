@@ -1,6 +1,6 @@
 'use strict'
 
-import jsonPath from 'jsonpath'
+import * as jsonRel from 'json-rel'
 import {is, isEmpty} from './util'
 
 /**
@@ -40,35 +40,35 @@ export class Topic {
 }
 
 /**
- * JsonPath (similar to XPath) query topics
+ * JsonRel (abstraction over JsonPointer, JsonQuery and JsonPath) query topics
  */
-export class JsonPath extends Topic {
+export class JsonRelTopic extends Topic {
 
   /**
-   * @param key {String} valid JsonPath query string 
+   * @param key {String} valid JsonRel query string
    */
   constructor(key) {
     super(key)
   }
 
   /**
-   * Determines the set / subset of data that matches JsonPath
+   * Determines the set / subset of data that matches JsonRel
    *
    * @param data {Object} 
-   * @return data set matching JsonPath
+   * @return data set matching JsonRel
    */
   matches(data): Array {
-    return jsonPath.query(data, this.key)
+    return jsonRel.$(this.key, data).all()
   }
 
   /**
-   * Determines if data is a valid JsonPath
+   * Determines if data is a valid JsonRel
    *
    * @param data {String}
    * @return true
    */
   static appliesTo(data): boolean {
-    return !isEmpty(jsonPath.parse(data))
+    return is(jsonRel.which(data), undefined)
   }
 
 }
@@ -83,8 +83,8 @@ export class JsonPath extends Topic {
  * @return identified Topic
  */
 export function identify(data): Topic {
-  if (is(data.constructor, String) && JsonPath.appliesTo(data)) {
-    return new JsonPath(data)
+  if (is(data.constructor, String) && JsonRelTopic.appliesTo(data)) {
+    return new JsonRelTopic(data)
   }
 
   return new Topic(data)

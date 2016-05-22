@@ -5,8 +5,8 @@
 // ▄█ ▀█▄ ▄█▀▄  ▄█▀▄ ▐▀▀▪▄▐█▌▐█▪
 // ▐█▄▪▐█▐█▌.▐▌▐█▌.▐▌▐█▄▄▌ ▐█▀·.
 // ·▀▀▀▀  ▀█▄▀▪ ▀█▄▀▪ ▀▀▀   ▀ • 
-
-import jsonPath from 'jsonpath'
+//
+// Copyright 2015-2016, MadHax, LLC
 
 import * as traversals from './traverse'
 import * as topic from './topic'
@@ -15,14 +15,12 @@ import * as _util from './util'
 /**
  * Flat map of all registered services, indexed by name
  */
-var _services = {}
+let _services = {}
 
 /**
  * Default service configuration object
  */
-const _config = {
-  strict: true,
-
+let _config = {
   data: {
     matching: true,
 
@@ -66,7 +64,7 @@ export class Service {
     _services[name] = this
 
     if (this.model instanceof Function) {
-      this.model(this.state)
+      this.model(this.state, this)
     }
   }
 
@@ -82,37 +80,43 @@ export class Service {
   /**
    * Setter for `data` that automatically publishes changes with default traversal settings
    *
-   * @param {Object} data
+   * @param {*} data
    */
-  set data(data: Object) {
+  set data(data) {
     this.update(data)
   }
 
   /**
-   * Traverses service tree via a conflict-free path and matches subscribers against the published data
+   * Traverses service tree via a conflict-free frontier and matches subscribers against the published data
    * 
-   * @param {Object} data
+   * @param {*} data
    * @param {?String} traversal
    * @param {?String} direction
+   * @param {?Array} frontier tracks all services encountered during publication. use caution with overriding this value.
    * @returns {Promise} deferred service tree traversal(s)
    */
   // TODO - Allows users to provide a custom collision resolver
   // TODO - Allow users to publish data with a certain key
-  // - that way you aren't forced to always write a JsonPath or matcher function for each subscribe / publish
-  publish(data, traversal = 'breadth', direction: string = 'down'): Promise {
+  // - that way you aren't forced to always write a json-rel matcher or function for each subscribe / publish
+  publish(data, traversal = 'breadth', direction: string = 'down', frontier: Array = []): Promise {
     return new Promise((resolve, reject) => {
       // ensure data is pure
       data = data instanceof Object ? Object.assign({}, data) : data
 
-      // process data against matching subscribers
-      const matches = this.subscriptions.map(subscrip => subscrip.process(data, false))
+      // action to perform on this node's step traversal
+      // (deferred in-case traversal circumevents the need)
+      const action = (data) => {
+        const matches = this.subscriptions.map(subscrip => subscrip.process(data, false))
 
-      // final result is either converged conflict-resolved subscriber match or cloned source data 
-      const result = matches[0] || data
+        return matches[0] || data
+      }
+
+      // recursively calls publish on next node (lazily evalutated during tree traversal)
+      const next = (node, result, frontier) => node.publish(result, traversal, direction, frontier)
 
       // traverse service node tree and publish result on each "next" node
-      return this.traverse(traversal, direction,
-        next => next.publish(result, traversal, direction)
+      return this.traverse(
+        traversal, direction, data, action, next, frontier
       )
     })
   }
@@ -123,7 +127,7 @@ export class Service {
    * @param {Topic|String} topic
    * @param {?Function} on
    */
-  subscribe(topic = '$', on?: Function = _ => _): Subscription {
+  subscribe(topic = '*', on?: Function = _ => _): Subscription {
     const subscrip = new Subscription(this, topic, on)
 
     this.subscriptions.push(subscrip)
@@ -135,18 +139,19 @@ export class Service {
    * Deregisters a subsubscription from the Service
    * 
    * @param {Subscription} subscrip
+   * @param {Boolean} freeze
    */
-  unsubscribe(subscrip: Subscription) {
-    this.subscriptions.splice(this.subscriptions.indexOf(subscrip), 1)
+  unsubscribe(subscrip: Subscription, freeze: boolean = false) {
+    subscrip.end(freeze)
   }
 
   /**
    * Updates the Service's canonical data source with new data and publishs the change
    * 
-   * @param {Object} data
+   * @param {*} data
    * @returns {Promise}
    */
-  update(data: Object, ...rest): Promise {
+  update(data, ...rest): Promise {
     this.state = data
 
     return this.publish(data, ...rest)
@@ -155,11 +160,11 @@ export class Service {
   /**
    * Merges and updates the Service's canonical date source with a new (cloned) data object and publishs the change
    * 
-   * @param {Object} data
+   * @param {*} data
    * @param {?Function} error
    * @returns {Promise}
    */
-  merge(data: Object, ...rest): Promise {
+  merge(data, ...rest): Promise {
     const merged = data instanceof Object ? Object.assign({}, this.state, data) : this.state
 
     return this.update(merged, ...rest)
@@ -179,7 +184,7 @@ export class Service {
   /**
    * Alias for update
    * 
-   * @param {Object} data
+   * @param {*} data
    * @returns {Promise}
    */
   use(data, ...rest): Promise {
@@ -189,7 +194,7 @@ export class Service {
   /**
    * Alias for merge
    * 
-   * @param {Object} data
+   * @param {*} data
    * @returns {Promise}
    */
   up(data, ...rest): Promise {
@@ -199,7 +204,7 @@ export class Service {
   /**
    * Determines set of data that matches the provided subsubscription's topic
    * 
-   * @param {Object} data
+   * @param {*} data
    * @param {Subscription} subscrip
    * @returns {Set}
    */
@@ -212,11 +217,12 @@ export class Service {
    * 
    * @param {String} traversal supported values defined by gooey.traverse.patterns
    * @param {String} direction up, down or bi
+   * @param {?Array} frontier tracks all services encountered during publication
    * @param {Promise|Function} next
    * @returns {Promise}
    */
-  traverse(traversal: string, direction: string, next): Promise {
-    return traversals.step.call(this, traversal, direction, next)
+  traverse(traversal: string, direction: string, data, action: Function, next: Function, frontier: Array): Promise {
+    return traversals.step.call(this, traversal, direction, data, action, next, frontier)
   }
 
   /**
@@ -277,10 +283,10 @@ export class Service {
    * Searches for and returns all siblings of the provided service
    * 
    * @param {Service} node relative/starting service
-   * @param {?Boolean} global return siblings across disjoint trees (true) or siblings in connected hierarchy (false - UNSUPPORTED)
+   * @param {?Boolean} globe return siblings across disjoint trees (true) or siblings in connected hierarchy (false - UNSUPPORTED)
    * @returns {Array} siblings of service
    */
-  siblings(node = this, global?: boolean = false): Array {
+  siblings(node: Service = this, globe?: boolean = false): Array {
     const roots = Service.findRoots()
     const depth = node.depth()
 
@@ -402,7 +408,7 @@ export class Subscription {
    * A topic-based data matcher that reacts to a service's publications
    * 
    * @param {Service} service
-   * @param {Object} topic topic/pattern to react to ('*' is wildcard)
+   * @param {Object} topic topic/pattern to react to ('*' or '$' is wildcard)
    * @param {Function} on functionality to be triggered on successful match
    */
   constructor(service: Service, topic, on: Function) {
@@ -416,7 +422,7 @@ export class Subscription {
   /**
    * Determines data or a subset of data that matches subscription topic
    * 
-   * @param {Object} data
+   * @param {*} data
    * @returns {Set} data matching subsubscription
    */
   matches(data): Set {
@@ -437,9 +443,9 @@ export class Subscription {
    * Determines if data matches the subsubscription and, if so, allows
    * the subsubscription to mutate and return the data.
    * 
-   * @param {Object} data
+   * @param {*} data
    * @param {Boolean} passive return either untouched data on mismatch (true) or null on mismatch (false)
-   * @returns {} subsubscription modified data
+   * @returns {*} subsubscription modified data
    */
   process(data, passive: boolean = true) {
     return this.matches(data).size ? this.on(data) : (passive ? data : null)
@@ -448,11 +454,15 @@ export class Subscription {
   /**
    * Unsubscribes a subsubscription from its service and mark it as inactive.
    * Subscription will not react to any messages from service until activated again.
+   *
+   * @param {?Boolean} freeze the object after unsubscription, preventing any further changes to Subscription
    */
-  end() {
-    service.unsubscribe(this)
+  end(freeze?: boolean = false) {
+    this.service.subscriptions.splice(this.service.subscriptions.indexOf(this), 1)
 
     this.active = false
+
+    if (freeze) Object.freeze(this)
   }
 
   /**
@@ -486,7 +496,7 @@ export var service = ({name, model, parent, children, config}) => new Service(na
 /**
  * Exported flat map of module services - to be used with caution
  */
-export var services = _services
+export const services = (() => _services)
 
 /**
  * Convenience reference to utility module
@@ -496,7 +506,7 @@ export const util = _util
 /**
  * Detaches services from module
  */
-export const clear = () => { _services = new Set() }
+export const clear = () => { _services = {} }
 
 /**
  * Logger for establishing a consistent message format
