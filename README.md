@@ -9,10 +9,11 @@ Gooey intends to alleviate data synchronization challenges in Single Page Applic
 * Publish / Subscribe as primary data synchronization mechanism
 * Bi-directional data traversals (synchronous and asynchronous)
 * Hierarchical acyclic relationships between `Services`
-* Allow decoupled communication between `Services` via pattern-matched topics
+* Allow decoupled communication between `Services` via pattern-matched topics (can go even further with a message-box)
 * `Services` are canonical
 * `Services` are proxies (data can be safely mutated by a `Service` before being passed on)
 * `Promises` everywhere
+* Components that exist out of the user's view or on other "pages" are often functionally relevant even though they aren't contextually relevant (state should stick!)
 
 I will ellaborate more on the benefits of this combination with "proofs" and examples as I find the time :)
 Until then, my evaluation of SPA design challenges provides some solid insights, so please give it a read!
@@ -36,7 +37,7 @@ The consumer is therefore responsible for ensuring that its components' states a
 This architecture allows consumer states to diverge from their providers, and it happens quite easily. This is especially prevelant true when
 provider representation states and/or sub-states are denormalized.
 
-Gooey aims to ease the management of complex multi-layer component states by iscolating, refining and consolidating the imperative patterns into a single library.
+Gooey aims to ease the management of high-level, complex multi-layer component states by isolating, refining and consolidating the imperative patterns into a single library.
 
 ### Concrete
 
@@ -88,12 +89,12 @@ The following is a non-exhaustive list of designs that attempt to alleviate the 
 On a semi-related note, the mechanism of data synchronization and "binding" in modern JS frameworks is often re-invented and sometimes implemented with
 inefficient and bug-prone solutions that emphasize digest cycles or queued listeners.
 
-Allowing client-side components to interact with each other via publish / subscribe messaging enables them to synchronize their state flexibly and efficiently.
+Allowing client-side components to interact with each other via decoupled publish / subscribe messaging enables them to synchronize their state flexibly and efficiently.
 As an effect, complex client-side components can more easily interact and synchronize with their API resource counterparts.
 
 ### Example
 
-Suppose you are designing an online portal for a company that finances renewable energy systems.
+Suppose you are designing an online portal for a company that finances renewable energy system projects.
 You might represent your model components as a composition hierarchy:
 
                                        User
@@ -127,7 +128,7 @@ What can make this simple yet dynamic context difficult to manage? (Examples may
       Quote and Systems are functionally disabled until Documents are signed or rejected, but changes to Finance Products will
       re-generate Documents for a Quote.
  - Difficult to synchronize effects and limitations of errors between relevant components
-    * Example: If a Finance Product component experiences a 500 error, ensure that User can no longer access the Quote and, if possible, re-select a new Quote for the User.
+    * Example: If a Finance Product component experiences a 500 error, ensure that User can no longer access the Product and, if more no Product options remain, clear out the page and re-select a new Quote for the User.
 
 ## Architecture
 
@@ -151,7 +152,7 @@ These relationships naturally establish a tree structure that can scale to suppo
 
 
 `Services` that form a tree can publish data to each other bi-directionally. Gooey supports several
-traversal patterns for data publication but performs breadth-first down/up by default.
+traversal patterns for data publication but performs breadth-first down by default.
 
 Because `Services` can communicate with related services bi-directionally, they can be extended to support the components
 of a modern SPA:
@@ -170,9 +171,84 @@ of a modern SPA:
 
 However, this design is out of the scope of Gooey core and will be implemented its own module (`gooey.web`).
 
+## Usage
+
+**Basic**
+
+The following example outlines the most basic use-case of Gooey - a simple 1:1 publish / subscriber relationship:
+
+```javascript
+import * as gooey from 'gooey'
+
+// publishing service
+const pub = gooey.service({name: 'pub'})
+
+// subscription, matches any object
+const sub = publisher.on('*', (data) => data.$modified = new Date())
+
+pub
+  .publish({foo: 'bar'})
+  .then(data => console.log(`data modified on ${data.modified}`))
+```
+
+Any data published through `pub` (or, if it existed, a parent `Service`) will now trigger `sub`'s subscription behavior, which appends a last `$modified` property to incoming data
+
+**Advanced**
+
+This example represents a more realistic and concrete scenario. Assume you have a user, messages, and a Growl-style notification:
+
+```javascript
+import * as gooey from 'gooey'
+
+const inbox = gooey.service({
+  name: 'inbox',
+  state: []
+})
+
+const user = gooey.service({
+  name: 'user',
+  parent: inbox,
+  state: {
+    messages: { latest: [] }
+  }
+})
+
+const notify = gooey.service({
+  name: 'notification',
+  parent: inbox
+})
+
+// whenever a message is sent, capture that
+// message in an independent store/session ("latest messages")
+// this allows `user` to "share" data with `inbox` without establishing a strict relationship
+user.on('/message', (msg) => user.state.messages.latest.push(msg))
+
+// could call `document.addChild` or something,
+// but using `alert` for simplicitly
+notify.on('/message', (msg) => alert(`New email: ${msg.title}`))
+
+// adds a new message to the inbox and
+// publishes the result to subscribing `Services`
+inbox
+  .add({
+    message: {
+      title : 'hello',
+      body  : 'world'
+    }
+  })
+  .then(msg => console.log('message published (all subscriptions reached)', msg))
+  .catch(err => console.log('message publication failed', err))
+```
+
+As we can see, although the `Services` draw explicit relationships with each other via `parent` and/or `children`, it's trivial to allow communication anywhere in this small tree through disjoint subscriptions.
+
+This concept scales gracefully to complex domain models that include many interdependent entities since the published data will transparently delegate throughout the Service tree (the default traversal strategy is Breadth-First Search).
+
+Gooey attempts to traverse your `Service` tree as efficiently as possible by visiting each node at most once, and supports additional synchronization strategies so that you can find the most efficient one for your architecture (Depth-First Search and Optimized Bi-directional BFS are in the works).
+
 ## Installation
 
-> $ npm install
+> $ npm link
 
 ## Testing
 
@@ -187,17 +263,16 @@ Gooey is still in its very early stages. Please feel free to message [me@madhax.
 - [X] Depth-first Down Traversal
 - [ ] Depth-first Up Traversal (in prog.)
 - [X] Breadth-first Down Traversal
-- [ ] Breadth-first Up Traversal
+- [X] Breadth-first Up Traversal
 - [ ] Concurrent traversals
 - [ ] Sibling collisions (Up direction)
 - [ ] Composite/Nested Services
-- [ ] Support [queryl](http://bit.ly/1jbEyGz)
 - [ ] Integrate [Object.observer](http://mzl.la/1OXjS2Q) or [Proxy object shim](https://github.com/tvcutsem/harmony-reflect)
 
 ## Future Modules
 
-- [ ] `gooey.http`
-- [ ] `gooey.dom`
+- [~] `gooey.http`
+- [~] `gooey.dom`
 - [ ] `gooey.debug`
 - [ ] `gooey.web` (dependent on `core`, `http`, `dom`, and `debug`)
 - [ ] `hyper.goo` (JSON Hyper-Schema parser)
