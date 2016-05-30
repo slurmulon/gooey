@@ -1,19 +1,19 @@
-# :cactus: Gooey
+# Gooey
 
-> Hierarchical PubSub data synchronization solution for ES6
+> :cactus: Hierarchical PubSub data synchronization solution for ES6
 
 ## tl;dr
 
-Gooey intends to alleviate data synchronization challenges in Single Page Applications by combining the following traits, patterns, and philosophies:
+Gooey intends to alleviate data and state synchronization challenges in Single Page Applications by combining the following traits, patterns, and philosophies:
 
-* Publish / Subscribe as primary data synchronization mechanism
-* Bi-directional data traversals (synchronous and asynchronous)
+* Publish / Subscribe as primary data / state synchronization mechanism
+* Optimized bi-directional data traversals (synchronous and asynchronous)
 * Hierarchical acyclic relationships between `Services`
 * Allow decoupled communication between `Services` via pattern-matched topics (can go even further with a message-box)
 * `Services` are canonical
 * `Services` are proxies (data can be safely mutated by a `Service` before being passed on)
 * `Promises` everywhere
-* Components that exist out of the user's view or on other "pages" are often functionally relevant even though they aren't contextually relevant (state should stick!)
+* Components that exist out of view or on other "pages" are often functionally relevant even though they aren't _contextually_ relevant (state should stick!)
 
 I will ellaborate more on the benefits of this combination with "proofs" and examples as I find the time :)
 Until then, my evaluation of SPA design challenges provides some solid insights, so please give it a read!
@@ -89,7 +89,7 @@ The following is a non-exhaustive list of designs that attempt to alleviate the 
 On a semi-related note, the mechanism of data synchronization and "binding" in modern JS frameworks is often re-invented and sometimes implemented with
 inefficient and bug-prone solutions that emphasize digest cycles or queued listeners.
 
-Allowing client-side components to interact with each other via decoupled publish / subscribe messaging enables them to synchronize their state flexibly and efficiently.
+Allowing client-side components to interact with each other via decoupled publish / subscribe messaging enables them to synchronize their state flexibly and efficiently, similar to an Actor-based message system like Erlang or Akka.
 As an effect, complex client-side components can more easily interact and synchronize with their API resource counterparts.
 
 ### Example
@@ -148,7 +148,7 @@ These relationships naturally establish a tree structure that can scale to suppo
          +-----------------------------+
          |                             |
          v                             v
-    (?) Child Service A           (?) Child Service B
+    (?) Child Service 1    ....   (?) Child Service N
 
 
 `Services` that form a tree can publish data to each other bi-directionally. Gooey supports several
@@ -166,7 +166,7 @@ of a modern SPA:
          +-----------------------------+
          |                             |
          v                             v
-    (?) View Service A         (?) View Service B
+    (?) View Service 1    ...   (?) View Service N
 
 
 However, this design is out of the scope of Gooey core and will be implemented its own module (`gooey.web`).
@@ -240,9 +240,9 @@ inbox
   .catch(err => console.log('message publication failed', err))
 ```
 
-As we can see, although the `Services` draw explicit relationships with each other via `parent` and/or `children`, it's trivial to allow communication anywhere in this small tree through disjoint subscriptions.
+So although the `Services` draw explicit relationships with each other via `parent` and/or `children` properties, it's trivial to allow communication anywhere in in the `Service` forest through disjoint subscriptions.
 
-This concept scales gracefully to complex domain models that include many interdependent entities since the published data will transparently delegate throughout the Service tree (the default traversal strategy is Breadth-First Search).
+This concept scales gracefully to complex domain models that include many interdependent entities since the published data will transparently delegate throughout the `Service` tree (the default traversal strategy is Breadth-First Search).
 
 Gooey attempts to traverse your `Service` tree as efficiently as possible by visiting each node at most once, and supports additional synchronization strategies so that you can find the most efficient one for your architecture (Depth-First Search and Optimized Bi-directional BFS are in the works).
 
@@ -264,15 +264,15 @@ Gooey is still in its very early stages. Please feel free to message [me@madhax.
 - [ ] Depth-first Up Traversal (in prog.)
 - [X] Breadth-first Down Traversal
 - [X] Breadth-first Up Traversal
-- [ ] Concurrent traversals
-- [ ] Sibling collisions (Up direction)
-- [ ] Composite/Nested Services
+- [ ] Concurrent traversals (in prog.)
+- [ ] Sibling collisions (in prog.)
+- [ ] Composite/Nested `Services`
 - [ ] Integrate [Object.observer](http://mzl.la/1OXjS2Q) or [Proxy object shim](https://github.com/tvcutsem/harmony-reflect)
 
 ## Future Modules
 
-- [~] `gooey.http`
-- [~] `gooey.dom`
+- [X] `gooey.http`
+- [ ] `gooey.dom` (in prog.)
 - [ ] `gooey.debug`
 - [ ] `gooey.web` (dependent on `core`, `http`, `dom`, and `debug`)
 - [ ] `hyper.goo` (JSON Hyper-Schema parser)
