@@ -7,3 +7,4 @@ coverage.html
 npm-debug.log
 private/
 browser/
+.nyc_output

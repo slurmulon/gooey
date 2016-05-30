@@ -1,12 +1,12 @@
 'use strict'
 
 /**
- * Singleton pool of traversal patterns
+ * Singleton pool of traversal strategies
  * that can be used in `gooey.Service.publish` events.
- * May be configured with `add(pattern)` or through
- * extension of the `patterns` object directly
+ * May be configured with `add(strategy)` or through
+ * extension of the `strategies` object directly
  */
-export const patterns = {
+export const strategies = {
   breadth: {
     /**
      * Performs Breadth-First Search (leafs -> roots)
@@ -70,8 +70,8 @@ export const patterns = {
 }
 
 /**
- * Executes a traversal step with a pattern that's defined
- * in the `traverse.patterns` pool. Passively recursive (user
+ * Executes a traversal step with a strategy that's defined
+ * in the `traverse.strategies` pool. Passively recursive (user
  * must explicitly call `traversal.step` again in their
  * `next` function!)
  *
@@ -91,7 +91,7 @@ export const patterns = {
  * @returns {Promise}
  */
 export function step(name: string, direction: string, data, action: Function, next: Function, frontier: Array = []): Promise {
-  const traversal = patterns[name][direction]
+  const traversal = strategies[name][direction]
 
   if (traversal) {
     const canNext = direction && !!{
@@ -120,14 +120,14 @@ export function step(name: string, direction: string, data, action: Function, ne
 }
 
 /**
- * Adds a traversal pattern to the `traverse.patterns`
+ * Adds a traversal strategy to the `traverse.strategies`
  * pool. These may be used (by name) in `gooey.Service.publish`
  * and other methods that inherit it.
  *
- * @param pattern {Object}
+ * @param strategy {Object}
  */
-export function add(pattern) {
-  Object.assign(patterns, pattern)
+export function add(strategy) {
+  Object.assign(strategies, strategy)
 }
 
-export default { patterns, step, add }
+export default { strategies, step, add }

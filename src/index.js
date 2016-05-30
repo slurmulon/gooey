@@ -234,7 +234,7 @@ export class Service {
   /**
    * Recursively traverses service tree via provided `next` function
    * 
-   * @param {String} traversal supported values defined by gooey.traverse.patterns
+   * @param {String} traversal supported values defined by gooey.traverse.strategies
    * @param {String} direction up, down or bi
    * @param {?Array<Service>} frontier tracks all services encountered during publication
    * @param {Promise|Function} next

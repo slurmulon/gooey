@@ -1,6 +1,6 @@
 'use strict'
 
-import * as jsonRel from 'json-rel'
+import * as jsonWhere from 'json-where'
 import {is, isEmpty} from './util'
 
 /**
@@ -58,7 +58,7 @@ export class JsonRelTopic extends Topic {
    * @return data set matching JsonRel
    */
   matches(data): Array {
-    return jsonRel.$(this.key, data).all()
+    return jsonWhere.$(this.key, data).all()
   }
 
   /**
@@ -68,7 +68,7 @@ export class JsonRelTopic extends Topic {
    * @return true
    */
   static appliesTo(data): boolean {
-    return !!jsonRel.which(data)
+    return !!jsonWhere.which(data)
   }
 
 }

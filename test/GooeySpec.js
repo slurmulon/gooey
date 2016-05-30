@@ -67,7 +67,7 @@ describe('Service', () => {
   })
 
   describe('publish', () => {
-    it('should error if an invalid traversal pattern is provided', () => {
+    it('should error if an invalid traversal strategy is provided', () => {
       new gooey.Service('foo').publish('bar', 'crazy').should.be.rejected
     })
 
@@ -155,7 +155,7 @@ describe('Service', () => {
         // TODO
       })
 
-      xit('should properly synchronize identical matching subscription responses (same pattern, same service', () => {
+      xit('should properly synchronize identical matching subscription responses (same strategy, same service', () => {
         // TODO
       })
     })
