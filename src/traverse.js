@@ -13,7 +13,7 @@ export const patterns = {
      *
      * @param {Function} next stepper function to map on next set of nodes
      * @param {*} data
-     * @param {Array} frontier list of visited nodes in traversal
+     * @param {Array<Service>} frontier list of visited nodes in traversal
      * @returns {Promise} asynchronous mapping of node "steps"
      */
     up: function(next: Function, data, frontier) {
@@ -37,7 +37,7 @@ export const patterns = {
      *
      * @param {Function} next stepper function to map on next set of nodes
      * @param {*} data
-     * @param {Array} frontier list of visited nodes in traversal
+     * @param {Array<Service>} frontier list of visited nodes in traversal
      * @returns {Promise} asynchronous mapping of node "steps"
      */
     down: function(next, data, frontier) {
@@ -56,7 +56,7 @@ export const patterns = {
      *
      * @param {Function} next stepper function to map on next set of nodes
      * @param {*} data
-     * @param {Array} frontier list of visited nodes in traversal
+     * @param {Array<Service>} frontier list of visited nodes in traversal
      * @returns {Promise} asynchronous mapping of node "steps"
      */
     down: function(next, data, frontier) {

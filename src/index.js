@@ -43,21 +43,24 @@ export class Service {
    * 
    * @param {String} name
    * @param {?Function} model
+   * @param {?*} state
    * @param {?Service} parent
-   * @param {?Array} children
+   * @param {?Array<Service>} children
    * @param {?Object} config
    */
-  constructor(name, model?: Function, parent?: Service, children?: Array = [], config?: Object = _config) {
+  constructor(name, model?: Function, state? = {}, parent?: Service, children?: Array = [], config?: Object = _config) {
     if (Object.is(name, undefined) || Service.isRegistered(name)) {
       throw `Services must have unique names: ${name}`
     }
 
-    this.name = name
+    this.name  = name
     this.model = model
-    this.state = {}
-    this.parent = parent instanceof Service ? parent.relateTo(this) : null
+    this.state = state
+
+    this.parent   = parent instanceof Service ? parent.relateTo(this) : null
     this.children = this.relateToAll(children)
     this.subscriptions = []
+
     this.config = config
     this.symbol = Symbol(name)
 
@@ -92,7 +95,7 @@ export class Service {
    * @param {*} data
    * @param {?String} traversal
    * @param {?String} direction
-   * @param {?Array} frontier tracks all services encountered during publication. use caution with overriding this value.
+   * @param {?Array<Service>} frontier tracks all services encountered during publication. use caution with overriding this value.
    * @returns {Promise} deferred service tree traversal(s)
    */
   // TODO - Allows users to provide a custom collision resolver
@@ -104,7 +107,7 @@ export class Service {
       data = data instanceof Object ? Object.assign({}, data) : data
 
       // action to perform on this node's step traversal
-      // (deferred in-case traversal circumevents the need)
+      // (deferred in case traversal circumevents the need)
       const action = (data) => {
         const matches = this.subscriptions.map(subscrip => subscrip.process(data, false))
 
@@ -158,7 +161,8 @@ export class Service {
   }
 
   /**
-   * Merges and updates the Service's canonical date source with a new (cloned) data object and publishs the change
+   * Merges and updates the Service's canonical data source with a new (cloned)
+   * data object and publishs the change
    * 
    * @param {*} data
    * @param {?Function} error
@@ -171,14 +175,18 @@ export class Service {
   }
 
   /**
-   * Alias for subscribe
-   * 
-   * @param {Topic|String} topic
-   * @param {Function} on
-   * @returns {Subscription}
+   * Appends to the Service's canonical data if it's a collection and then
+   * publishes the change
+   *
+   * @param {*} data
+   * @param {?Function} error
+   * @returns {Promise}
    */
-  on(topic, on: Function): Subscription {
-    return this.subscribe(topic, on)
+  add(data, ...rest): Promise {
+    if (this.state instanceof Array) {
+      this.state.push(data)
+      this.update(this.state, ...rest)
+    }
   }
 
   /**
@@ -202,6 +210,17 @@ export class Service {
   }
 
   /**
+   * Alias for subscribe
+   * 
+   * @param {Topic|String} topic
+   * @param {Function} on
+   * @returns {Subscription}
+   */
+  on(topic, on: Function): Subscription {
+    return this.subscribe(topic, on)
+  }
+
+  /**
    * Determines set of data that matches the provided subsubscription's topic
    * 
    * @param {*} data
@@ -217,7 +236,7 @@ export class Service {
    * 
    * @param {String} traversal supported values defined by gooey.traverse.patterns
    * @param {String} direction up, down or bi
-   * @param {?Array} frontier tracks all services encountered during publication
+   * @param {?Array<Service>} frontier tracks all services encountered during publication
    * @param {Promise|Function} next
    * @returns {Promise}
    */
@@ -237,9 +256,9 @@ export class Service {
   relateTo(child: Service): Service {
     this.children.push(child)
 
-    if (Service.cycleExists()) {
-      this.children.pop() // FIXME - bleh, needs improvement to say the least
-    }
+    // if (Service.cycleExists()) {
+    //   this.children.pop() // FIXME - bleh, needs improvement to say the least
+    // }
 
     return this
   }
@@ -249,8 +268,8 @@ export class Service {
    * Child services inherit publications from their parent.
    * The opposite is also supported via `up` traversals.
    * 
-   * @param {Array} children services to relate to
-   * @returns {Array} modified children services with new parent relationship
+   * @param {Array<Service>} children services to relate to
+   * @returns {Array<Service>} modified children services with new parent relationship
    */
   relateToAll(children: Array): Array {
     return children.map(c => {
@@ -284,7 +303,7 @@ export class Service {
    * 
    * @param {Service} node relative/starting service
    * @param {?Boolean} globe return siblings across disjoint trees (true) or siblings in connected hierarchy (false - UNSUPPORTED)
-   * @returns {Array} siblings of service
+   * @returns {Array<Service>} siblings of service
    */
   siblings(node: Service = this, globe?: boolean = false): Array {
     const roots = Service.findRoots()
@@ -299,7 +318,7 @@ export class Service {
    * @returns {Boolean}
    */
   isRoot(): boolean {
-    return !this.parent
+    return util.isEmpty(this.parent)
   }
 
   /**
@@ -308,14 +327,14 @@ export class Service {
    * @returns {Boolean}
    */
   isLeaf(): boolean {
-    return !this.children
+    return util.isEmpty(this.children)
   }
 
   /**
    * Determines and returns all root node services in the global service tree
    * 
-   * @param {Array} services service tree to search through (default is global)
-   * @returns {Array}
+   * @param {Array<Service>} services service tree to search through (default is global)
+   * @returns {Array<Service>}
    */
   static findRoots(services = _services): Array {
     return util.values(services).filter(svc => svc instanceof Service && svc.isRoot())
@@ -324,8 +343,8 @@ export class Service {
   /**
    * Determines and returns all leaf node services in the global service tree
    * 
-   * @param {Array} services service tree to search through (default is global)
-   * @returns {Array}
+   * @param {Array<Service>} services service tree to search through (default is global)
+   * @returns {Array<Service>}
    */
   static findLeafs(services = _services): Array {
     return util.values(services).filter(svc => svc instanceof Service && svc.isLeaf())
@@ -335,8 +354,8 @@ export class Service {
    * Determines and returns the nodes (out of the provided service tree) at the target depth
    * 
    * @param {Number} targetDepth
-   * @param {Array} nodes service tree to search through (default is global)
-   * @returns {Array}
+   * @param {Array<Service>} nodes service tree to search through (default is global)
+   * @returns {Array<Service>}
    */
   static findAtDepth(targetDepth: number, nodes: Array = []): Array {
     const found  = []
@@ -360,22 +379,28 @@ export class Service {
   /**
    * Determines if a cyclic relationship exists anywhere in the provided service tree
    * 
-   * @param {Array} services service tree to search through (default is global)
+   * @param {Array<Service>} services service tree to search through (default is global)
    * @returns {Boolean}
    */
-  static cycleExists(services: Array = Array.from(_services)): boolean {
+  static cycleExists(services = _services): boolean {
     const roots = Service.findRoots(services) || []
-    const found = !util.isEmpty(roots) ? roots.map(r => r.name) : []
+    const found = roots.map(r => r.name)
+    const hasRoots    = !util.isEmpty(roots)
+    const hasServices = !util.isEmpty(services)
+
+    if (!hasRoots && hasServices) {
+      return true
+    }
 
     let curNode = null
     let cyclic  = false
 
-    roots.forEach(root => {
+    roots.forEach((root, i) => {
       curNode = root
 
       while (!cyclic && !util.isEmpty(curNode.children)) {
         (curNode.children || []).forEach(child => {
-          if (!found.indexOf(child.name) >= 0) {
+          if (!~found.indexOf(child.name)) {
             found.push(child.name)
 
             curNode = child
@@ -397,6 +422,7 @@ export class Service {
   static isRegistered(name: string): boolean {
     return Array.from(_services).map(serv => serv.name).indexOf(name) >= 0
   }
+
 }
 
 /**
@@ -486,12 +512,13 @@ export class Subscription {
  * 
  * @param {String} name
  * @param {?Function} model
+ * @param {?*} state
  * @param {?Service} parent
- * @param {?Array} children
+ * @param {?Array<Service>} children
  * @param {?Object} config
  * @returns {Service}
  */
-export var service = ({name, model, parent, children, config}) => new Service(name, model, parent, children, config)
+export const service = ({name, model, state, parent, children, config}) => new Service(name, model, state, parent, children, config)
 
 /**
  * Exported flat map of module services - to be used with caution

@@ -20,9 +20,9 @@ describe('Service', () => {
 
     it('should add valid services to the global service pool', () => {
       const service  = new gooey.Service('foo')
-      const services = gooey.services
+      const services = gooey.services()
 
-      services.hasOwnProperty('foo').should.be.true
+      services.hasOwnProperty('foo').should.be.true()
     })
 
     it('should establish itself as a parent to all child services', () => {
@@ -61,8 +61,8 @@ describe('Service', () => {
       const parentService = new gooey.Service('root')
       const childService  = new gooey.service({name: 'child', parent: parentService})
 
-      parentService.isRoot.should.be.true
-      childService.isRoot.should.be.false
+      parentService.isRoot().should.be.true()
+      childService.isRoot().should.be.false()
     })
   })
 
@@ -435,25 +435,25 @@ describe('Service', () => {
       const root = new gooey.Service('root')
 
       should.equal(root.parent, null)
-      root.isRoot().should.be.true
+      root.isRoot().should.be.true()
 
       const child = new gooey.service({name: 'child', parent: root})
 
-      child.isRoot().should.be.false
+      child.isRoot().should.be.false()
     })
   })
 
   describe('isLeaf', () => {
     it('should return true for orphan nodes', () => {
-       new gooey.Service('orphan').isLeaf().should.be.true
+       new gooey.Service('orphan').isLeaf().should.be.true()
     })
 
     it('should return false for any parent node', () => {
       const parent = new gooey.Service('parent')
-      const child  = new gooey.Service('child')
+      const child  = new gooey.service({name: 'child', parent})
 
-      parent.isLeaf().should.be.false
-      child.isLeaf().should.be.true
+      parent.isLeaf().should.be.false()
+      child.isLeaf().should.be.true()
     })
 
     it('should return true for any leaf node', () => {
@@ -462,10 +462,10 @@ describe('Service', () => {
       const leaf1 = new gooey.service({name: 'leaf1', parent: mid})
       const leaf2 = new gooey.service({name: 'leaf2', parent: mid})
 
-      root.isLeaf().should.be.false
-      mid.isLeaf().should.be.false
-      leaf1.isLeaf().should.be.true
-      leaf2.isLeaf().should.be.true
+      root.isLeaf().should.be.false()
+      mid.isLeaf().should.be.false()
+      leaf1.isLeaf().should.be.true()
+      leaf2.isLeaf().should.be.true()
     })
 
   })
@@ -524,15 +524,15 @@ describe('Service', () => {
       const serviceB = new gooey.service({name: 'B', parent: serviceA})
       const serviceC = new gooey.service({name: 'C', parent: serviceB, children: [serviceA]})
 
-      new gooey.Service.cycleExists().should.be.true
+      gooey.Service.cycleExists().should.be.true()
     })
 
     it('should reurn false if the tree is acyclic', () => {
-      const serviceA = new gooey.Service('A')
-      const serviceB = new gooey.service({name: 'B', parent: serviceA})
-      const serviceC = new gooey.service({name: 'C', parent: serviceA})
+      const serviceA = new gooey.Service('A.2')
+      const serviceB = new gooey.service({name: 'B.2', parent: serviceA})
+      const serviceC = new gooey.service({name: 'C.2', parent: serviceA})
 
-      new gooey.Service.cycleExists().should.be.false
+      gooey.Service.cycleExists().should.be.false()
     })
   })
 
