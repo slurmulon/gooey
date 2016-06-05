@@ -11,7 +11,7 @@ import {is, isEmpty} from './util'
 export class Topic {
 
   /**
-   * @param key {Object} value to use as comparator when matching topics 
+   * @param {*} key value to use as comparator when matching topics 
    */
   constructor(key) {
     this.key = key
@@ -20,8 +20,8 @@ export class Topic {
   /**
    * Determines data that matches the topic key
    *
-   * @param data {Object} 
-   * @return data matching topic key
+   * @param {Object} data
+   * @return {*} data matching topic key
    */
   matches(data): Array {
     return is(this.key, data) ? [data] : []
@@ -30,8 +30,8 @@ export class Topic {
   /**
    * Determines if provided data can be used as a topic key
    *
-   * @param data {Object}
-   * @return true
+   * @param {Object} data
+   * @return {boolean} true
    */
   static appliesTo(data): boolean {
     return true
@@ -42,10 +42,10 @@ export class Topic {
 /**
  * JsonRel (abstraction over JsonPointer, JsonQuery and JsonPath) query topics
  */
-export class JsonRelTopic extends Topic {
+export class JsonWhereTopic extends Topic {
 
   /**
-   * @param key {String} valid JsonRel query string
+   * @param {string} key valid JsonRel query string
    */
   constructor(key) {
     super(key)
@@ -54,8 +54,8 @@ export class JsonRelTopic extends Topic {
   /**
    * Determines the set / subset of data that matches JsonRel
    *
-   * @param data {Object} 
-   * @return data set matching JsonRel
+   * @param {Object} data  
+   * @return {Array<*>} data set matching JsonRel
    */
   matches(data): Array {
     return jsonWhere.$(this.key, data).all()
@@ -64,8 +64,8 @@ export class JsonRelTopic extends Topic {
   /**
    * Determines if data is a valid JsonRel
    *
-   * @param data {String}
-   * @return true
+   * @param {string} data
+   * @return {boolean}
    */
   static appliesTo(data): boolean {
     return !!jsonWhere.which(data)
@@ -79,16 +79,16 @@ export class JsonRelTopic extends Topic {
  * 
  * Returns a base Topic with simple equality comparison in the case of a mis-match
  *
- * @param data potential topic to identify
- * @return identified Topic
+ * @param {*} data potential topic to identify
+ * @return {Topic} identified Topic
  */
 export function identify(data): Topic {
-  if (is(data.constructor, String) && JsonRelTopic.appliesTo(data)) {
-    return new JsonRelTopic(data)
+  if (is(data.constructor, String) && JsonWhereTopic.appliesTo(data)) {
+    return new JsonWhereTopic(data)
   }
 
   return new Topic(data)
 }
 
 
-export default { Topic, JsonRelTopic, identify }
+export default { Topic, JsonWhereTopic, identify }

@@ -41,7 +41,7 @@ export class Service {
   /**
    * Creates and registers a new gooey service with the current module
    * 
-   * @param {String} name
+   * @param {string} name
    * @param {?Function} model
    * @param {?*} state
    * @param {?Service} parent
@@ -234,8 +234,8 @@ export class Service {
   /**
    * Recursively traverses service tree via provided `next` function
    * 
-   * @param {String} traversal supported values defined by gooey.traverse.strategies
-   * @param {String} direction up, down or bi
+   * @param {string} traversal supported values defined by gooey.traverse.strategies
+   * @param {string} direction up, down or bi
    * @param {?Array<Service>} frontier tracks all services encountered during publication
    * @param {Promise|Function} next
    * @returns {Promise}
@@ -510,7 +510,7 @@ export class Subscription {
 /**
  * Alternative destructured alias or Service constructor
  * 
- * @param {String} name
+ * @param {string} name
  * @param {?Function} model
  * @param {?*} state
  * @param {?Service} parent

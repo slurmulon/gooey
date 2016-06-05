@@ -16,20 +16,12 @@ export const strategies = {
      * @param {Array<Service>} frontier list of visited nodes in traversal
      * @returns {Promise} asynchronous mapping of node "steps"
      */
-    up: function(next: Function, data, frontier) {
-      const stepper = (node) => next(node, data, frontier)
-
-      // FIXME - scan for sibblings is inefficient (n2), read Beamer paper
-      // couple of options to research more:
-      // - keep this and don't care if some nodes are visited more than once
-      // - integrate Beamer's bottom-up BFS algorithm (has its own noted issues)
-      // - build a map of depth -> services, iterating through each depth sequentially (nodes at each depth async)
-      // - if a node has an immediate sibling (same parent), ensure only 1 next call to the parent is made across all children (aka siblings of "next" up node)
+    up: function(next: Function, data, frontier: Array) {
+      const stepper  = (node) => next(node, data, frontier)
       const siblings = this.parent.siblings(undefined, true)
+      const nodes    = [this.parent].concat(siblings)
 
-      const nodes = [this.parent].concat(siblings).map(stepper)
-
-      return Promise.all(nodes)
+      return Promise.all(nodes.map(stepper))
     },
 
     /**
@@ -40,7 +32,7 @@ export const strategies = {
      * @param {Array<Service>} frontier list of visited nodes in traversal
      * @returns {Promise} asynchronous mapping of node "steps"
      */
-    down: function(next, data, frontier) {
+    down: function(next: Function, data, frontier: Array) {
       const stepper = (node) => next(node, data, frontier)
 
       return Promise.all(this.children.map(stepper))
@@ -59,10 +51,10 @@ export const strategies = {
      * @param {Array<Service>} frontier list of visited nodes in traversal
      * @returns {Promise} asynchronous mapping of node "steps"
      */
-    down: function(next, data, frontier) {
+    down: function(next: Function, data, frontier: Array) {
       const stepper = (node) => next(node, data, frontier)
 
-      return Promise.all(this.children.map(stepper))
+      return this.children.map(stepper)
     }
   }
 
@@ -83,8 +75,8 @@ export const strategies = {
  * Patterns are strongly encouraged to strictly utilize
  * `Promise`s although it's technically not required.
  *
- * @param {String} name `breadth` or `depth`
- * @param {String} direction `up`, `down` or `bi`
+ * @param {string} name `breadth` or `depth`
+ * @param {string} direction `up`, `down` or `bi`
  * @param {*} data
  * @param {Function} action function to invoke against data on each step
  * @param {Function} next function to invoke next after node is visited (typically `publish`)
@@ -95,9 +87,9 @@ export function step(name: string, direction: string, data, action: Function, ne
 
   if (traversal) {
     const canNext = direction && !!{
-      up   : () => this.parent,
-      down : () => this.children.length
-    }[direction]()
+      up   : this.parent,
+      down : this.children.length
+    }[direction]
 
     const canAddToFrontier = frontier.length === 0 || !~frontier.indexOf(this.name)
 
@@ -115,7 +107,7 @@ export function step(name: string, direction: string, data, action: Function, ne
     // unvisited node result
     return Promise(result)
   } else {
-    return Promise(result).reject('unknown traversal')
+    return Promise(result).reject(`unknown traversal. name: ${name}, direction: ${direction}`)
   }
 }
 
@@ -124,7 +116,7 @@ export function step(name: string, direction: string, data, action: Function, ne
  * pool. These may be used (by name) in `gooey.Service.publish`
  * and other methods that inherit it.
  *
- * @param strategy {Object}
+ * @param {Object} strategy
  */
 export function add(strategy) {
   Object.assign(strategies, strategy)
