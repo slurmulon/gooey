@@ -10,10 +10,11 @@ Gooey intends to alleviate data and state synchronization challenges in Single P
 * Optimized bi-directional data traversals (synchronous and asynchronous)
 * Hierarchical acyclic relationships between `Services`
 * Allow decoupled communication between `Services` via pattern-matched topics (can go even further with a message-box)
-* `Services` are canonical
+* `Services` are canonical sources of state
 * `Services` are proxies (data can be safely mutated by a `Service` before being passed on)
 * `Promises` everywhere
-* Components that exist out of view or on other "pages" are often functionally relevant even though they aren't _contextually_ relevant (state should stick!)
+* `url`s are sometimes clumsy or inadequate for representing every view state (i.e. those containing multiple selectable entities that affect other components) and therefore should not act as a canonical source of state
+* Components that exist out of view or on other "pages" are often functionally relevant even though they aren't _contextually_ relevant (in other words, state should stick by default instead of being forcefully re-evaluated)
 
 I will ellaborate more on the benefits of this combination with "proofs" and examples as I find the time :)
 Until then, my evaluation of SPA design challenges provides some solid insights, so please give it a read!
@@ -273,6 +274,7 @@ Gooey is still in its very early stages. Please feel free to message [me@madhax.
 
 - [X] `gooey.http`
 - [ ] `gooey.dom` (in prog.)
+- [ ] `gooey.stream`
 - [ ] `gooey.debug`
 - [ ] `gooey.web` (dependent on `core`, `http`, `dom`, and `debug`)
 - [ ] `hyper.goo` (JSON Hyper-Schema parser)
