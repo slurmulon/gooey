@@ -125,10 +125,10 @@ describe('Service', () => {
           return data
         })
 
-        parent.publish(testData).then(res => { // FIXME - publish needs to return the final pipelined result
-          res.foundBy.should.containEql('parent')
-          res.foundBy.should.containEql('child')
-        })
+        const result = parent.publish(testData)
+
+        result.should.eventually.containEql('parent')
+        result.should.eventually.containEql('child')
       })
 
       it('should not modify data and return it in the original state if no subscriptions match', () => {
@@ -541,10 +541,6 @@ describe('Service', () => {
 describe('Subscription', () => {
 
   beforeEach(gooey.clear)
-
-  xdescribe('constructor', () => {
-    // TODO
-  })
 
   describe('matches', () => {
     describe('basic', () => {

@@ -13,9 +13,9 @@ import * as topic from './topic'
 import * as _util from './util'
 
 /**
- * Flat map of all registered services, indexed by name
+ * Map of all registered services, indexed by name
  */
-let _services = {}
+let _services = Object.create(null)
 
 /**
  * Default service configuration object
@@ -57,7 +57,7 @@ export class Service {
     this.model = model
     this.state = state
 
-    this.parent   = parent instanceof Service ? parent.relateTo(this) : null
+    this.parent   = parent ? parent.relateTo(this) : null
     this.children = this.relateToAll(children)
     this.subscriptions = []
 
@@ -99,8 +99,7 @@ export class Service {
    * @returns {Promise} deferred service tree traversal(s)
    */
   // TODO - Allows users to provide a custom collision resolver
-  // TODO - Allow users to publish data with a certain key
-  // - that way you aren't forced to always write a json-rel matcher or function for each subscribe / publish
+  // TODO - Allow users to publish data with a simple key
   publish(data, traversal: string = 'breadth', direction: string = 'down', frontier: Array = []): Promise {
     return new Promise((resolve, reject) => {
       // ensure data is pure
@@ -126,7 +125,6 @@ export class Service {
 
   /**
    * Creates and registers a publish subsubscription with the Service
-   * 
    * @param {Topic|String} topic
    * @param {?Function} on
    */
