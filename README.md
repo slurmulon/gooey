@@ -13,6 +13,7 @@ Gooey intends to alleviate data and state synchronization challenges in Single P
 * `Services` are canonical
 * `Services` are proxies (data can be safely mutated by a `Service` before being passed on)
 * `Promises` everywhere
+* URLs are **not** sufficient for determining every state
 * Components that exist out of view or on other "pages" are often functionally relevant even though they aren't _contextually_ relevant (state should stick!)
 
 I will ellaborate more on the benefits of this combination with "proofs" and examples as I find the time :)
@@ -180,11 +181,11 @@ The following example outlines the most basic use-case of Gooey - a simple 1:1 p
 ```javascript
 import * as gooey from 'gooey'
 
-// publishing service
+// publisher service
 const pub = gooey.service({name: 'pub'})
 
-// subscription, matches any object
-const sub = publisher.on('*', (data) => data.$modified = new Date())
+// subscriber - matches any published object
+const sub = pub.on('*', (data) => data.$modified = new Date())
 
 pub
   .publish({foo: 'bar'})
@@ -273,6 +274,7 @@ Gooey is still in its very early stages. Please feel free to message [me@madhax.
 
 - [X] `gooey.http`
 - [ ] `gooey.dom` (in prog.)
+- [ ] `gooey.stream`
 - [ ] `gooey.debug`
 - [ ] `gooey.web` (dependent on `core`, `http`, `dom`, and `debug`)
 - [ ] `hyper.goo` (JSON Hyper-Schema parser)
