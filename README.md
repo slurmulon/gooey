@@ -189,7 +189,8 @@ const sub = pub.on('*', (data) => data.$modified = new Date())
 
 pub
   .publish({foo: 'bar'})
-  .then(data => console.log(`data modified on ${data.modified}`))
+  .then(data => console.log(`data modified on ${data.$modified}`))
+  .catch(err => console.log(`data failed to publish`, err))
 ```
 
 Any data published through `pub` (or, if it existed, a parent `Service`) will now trigger `sub`'s subscription behavior, which appends a last `$modified` property to incoming data
