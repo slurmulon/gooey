@@ -1,5 +1,3 @@
-'use strict'
-
 /**
  * More convenient object comparison
  */
