@@ -1,7 +1,5 @@
-'use strict'
-
-import * as jsonWhere from 'json-where'
-import {is, isEmpty} from './util'
+import * as jsonWhere  from 'json-where'
+import { is, isEmpty } from './util'
 
 /**
  * Base topic. Performs simple equality comparison of value to topic
@@ -40,29 +38,29 @@ export class Topic {
 }
 
 /**
- * JsonRel (abstraction over JsonPointer, JsonQuery and JsonPath) query topics
+ * JsonWhere (abstraction over JsonPointer, JsonQuery and JsonPath) query topics
  */
 export class JsonWhereTopic extends Topic {
 
   /**
-   * @param {string} key valid JsonRel query string
+   * @param {string} key valid JsonWhere query string
    */
   constructor(key) {
     super(key)
   }
 
   /**
-   * Determines the set / subset of data that matches JsonRel
+   * Determines the set / subset of data that matches JsonWhere
    *
    * @param {Object} data  
-   * @return {Array<*>} data set matching JsonRel
+   * @return {Array<*>} data set matching JsonWhere
    */
   matches(data): Array {
     return jsonWhere.$(this.key, data).all()
   }
 
   /**
-   * Determines if data is a valid JsonRel
+   * Determines if data is a valid JsonWhere
    *
    * @param {string} data
    * @return {boolean}

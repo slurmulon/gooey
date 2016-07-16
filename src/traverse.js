@@ -1,5 +1,3 @@
-'use strict'
-
 /**
  * Singleton pool of traversal strategies
  * that can be used in `gooey.Service.publish` events.
