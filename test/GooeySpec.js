@@ -147,11 +147,7 @@ describe('Service', () => {
         testData.foundBy.should.be.empty
       })
 
-      xit('should ensure that subscription matches are performed passively',  () => {
-        // TODO
-      })
-
-      xit('should filter out subscription matches that are untouched or `null`',  () => {
+      xit('should ensure that subscription matches are performed safely',  () => {
         // TODO
       })
 
@@ -567,7 +563,7 @@ describe('Subscription', () => {
         results.should.not.containEql(passiveData)
       })
 
-      it('should only perform json-rel matching if the configuration permits (true)', () => {
+      it('should only perform json-where matching if the configuration permits (true)', () => {
         const service    = new gooey.service({name: 'foo', config: {data: {matching: true }}})
         const activeData = {find: true}
         const results    = []
@@ -578,7 +574,7 @@ describe('Subscription', () => {
         results.should.containEql(activeData)
       })
 
-      it('should return json-rel matches from all relevant subscribers', () => {
+      it('should return json-where matches from all relevant subscribers', () => {
         const activeData = {find: 'bar'}
         const service    = new gooey.service({name: 'foo'})
         const scription  = service.subscribe('$.find')
