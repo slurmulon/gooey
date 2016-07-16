@@ -149,7 +149,7 @@ These relationships naturally establish a tree structure that can scale to suppo
          +-----------------------------+
          |                             |
          v                             v
-    (?) Child Service 1    ....   (?) Child Service N
+    (?) Child Service 1    ...    (?) Child Service N
 
 
 `Services` that form a tree can publish data to each other bi-directionally. Gooey supports several
@@ -197,7 +197,8 @@ Any data published through `pub` (or, if it existed, a parent `Service`) will no
 
 **Advanced**
 
-This example represents a more realistic and concrete scenario. Assume you have a user, messages, and a Growl-style notification:
+This example represents a more realistic and concrete scenario.
+Assume you have a user, messages, and a Growl-style notification:
 
 ```javascript
 import * as gooey from 'gooey'
@@ -220,13 +221,11 @@ const notify = gooey.service({
   parent: inbox
 })
 
-// whenever a message is sent, capture that
-// message in an independent store/session ("latest messages")
+// whenever a message is sent, capture that message in an independent store/session ("latest messages")
 // this allows `user` to "share" data with `inbox` without establishing a strict relationship
 user.on('/message', (msg) => user.state.messages.latest.push(msg))
 
-// could call `document.addChild` or something,
-// but using `alert` for simplicitly
+// could call `document.addChild` or something,but using `alert` for simplicitly
 notify.on('/message', (msg) => alert(`New email: ${msg.title}`))
 
 // adds a new message to the inbox and
@@ -238,7 +237,7 @@ inbox
       body  : 'world'
     }
   })
-  .then(msg => console.log('message published (all subscriptions reached)', msg))
+  .then(msg  => console.log('message published (all subscriptions reached)', msg))
   .catch(err => console.log('message publication failed', err))
 ```
 
