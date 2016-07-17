@@ -31,12 +31,12 @@ export class Service {
   /**
    * Creates and registers a new gooey service with the current module
    * 
-   * @param {string} name
-   * @param {?Function} model
-   * @param {?*} state
-   * @param {?Service} parent
-   * @param {?Array<Service>} children
-   * @param {?Object} config
+   * @param {tring} name
+   * @param {Function} [model]
+   * @param {*} [state]
+   * @param {Service} [parent]
+   * @param {Array<Service>} [children]
+   * @param {Object} [config]
    */
   constructor(
     name      : string,
@@ -88,11 +88,11 @@ export class Service {
 
   /**
    * Traverses service tree via a conflict-free frontier and matches subscribers against the published data
-   * 
+   *
    * @param {*} data
-   * @param {?String} traversal
-   * @param {?String} direction
-   * @param {?Array<Service>} frontier tracks all services encountered during publication. use caution with overriding this value.
+   * @param {String} [traversal]
+   * @param {String} [direction]
+   * @param {Array<Service>} [frontier] tracks all services encountered during publication. use caution with overriding this value.
    * @returns {Promise} deferred service tree traversal(s)
    */
   // TODO - Allows users to provide a custom collision resolver
@@ -122,8 +122,9 @@ export class Service {
 
   /**
    * Creates and registers a publish subsubscription with the Service
+   *
    * @param {Topic|String} topic
-   * @param {?Function} on
+   * @param {Function} [on]
    */
   subscribe(topic = '*', on?: Function = _ => _): Subscription {
     const subscrip = new Subscription(this, topic, on)
@@ -135,7 +136,7 @@ export class Service {
 
   /**
    * Deregisters a subsubscription from the Service
-   * 
+   *
    * @param {Subscription} subscrip
    * @param {boolean} freeze
    */
@@ -145,7 +146,7 @@ export class Service {
 
   /**
    * Updates the Service's canonical data source with new data and publishs the change
-   * 
+   *
    * @param {*} data
    * @returns {Promise}
    */
@@ -158,9 +159,9 @@ export class Service {
   /**
    * Merges and updates the Service's canonical data source with a new (cloned)
    * data object and publishs the change
-   * 
+   *
    * @param {*} data
-   * @param {?Function} error
+   * @param {Function} [error]
    * @returns {Promise}
    */
   merge(data, ...rest): Promise {
@@ -174,7 +175,7 @@ export class Service {
    * publishes the change
    *
    * @param {*} data
-   * @param {?Function} error
+   * @param {Function} [error]
    * @returns {Promise}
    */
   add(data, ...rest): Promise {
@@ -186,7 +187,7 @@ export class Service {
 
   /**
    * Alias for update
-   * 
+   *
    * @param {*} data
    * @returns {Promise}
    */
@@ -196,7 +197,7 @@ export class Service {
 
   /**
    * Alias for merge
-   * 
+   *
    * @param {*} data
    * @returns {Promise}
    */
@@ -206,7 +207,7 @@ export class Service {
 
   /**
    * Alias for subscribe
-   * 
+   *
    * @param {Topic|String} topic
    * @param {Function} on
    * @returns {Subscription}
@@ -217,7 +218,7 @@ export class Service {
 
   /**
    * Alias for unsubscribe
-   * 
+   *
    * @param {Subscription} subscrip
    * @param {boolean} freeze
    */
@@ -227,7 +228,7 @@ export class Service {
 
   /**
    * Determines set of data that matches the provided subsubscription's topic
-   * 
+   *
    * @param {*} data
    * @param {Subscription} subscrip
    * @returns {Set}
@@ -238,10 +239,10 @@ export class Service {
 
   /**
    * Recursively traverses service tree via provided `next` function
-   * 
+   *
    * @param {string} traversal supported values defined by gooey.traverse.strategies
    * @param {string} direction up, down or bi
-   * @param {?Array<Service>} frontier tracks all services encountered during publication
+   * @param {Array<Service>} [frontier] tracks all services encountered during publication
    * @param {Promise|Function} next
    * @returns {Promise}
    */
@@ -254,7 +255,7 @@ export class Service {
    * Child services inherit publications from their parent.
    * The opposite is also supported via `up` traversals.
    * Silently fails if a cyclic relationship is proposed.
-   * 
+   *
    * @param {Service} child service to relate to
    * @returns {Service} modified service with new child relationship
    */
@@ -272,7 +273,7 @@ export class Service {
    * Establishes service as parent to each provided child service.
    * Child services inherit publications from their parent.
    * The opposite is also supported via `up` traversals.
-   * 
+   *
    * @param {Array<Service>} children services to relate to
    * @returns {Array<Service>} modified children services with new parent relationship
    */
@@ -288,7 +289,7 @@ export class Service {
 
   /**
    * Determines a provided service's depth in the service tree
-   * 
+   *
    * @param {Service} node relative/starting service
    * @returns {number} depth of service
    */
@@ -305,9 +306,9 @@ export class Service {
 
   /**
    * Searches for and returns all siblings of the provided service
-   * 
-   * @param {Service} node relative/starting service
-   * @param {?boolean} globe return siblings across disjoint trees (true) or siblings in connected hierarchy (false - UNSUPPORTED)
+   *
+   * @param {Service} [node] relative/starting service
+   * @param {boolean} [globe] return siblings across disjoint trees (true) or siblings in connected hierarchy (false - UNSUPPORTED)
    * @returns {Array<Service>} siblings of service
    */
   siblings(node: Service = this, globe?: boolean = false): Array {
@@ -319,7 +320,7 @@ export class Service {
 
   /**
    * Determines if the service is a root node in the local service tree
-   * 
+   *
    * @returns {boolean}
    */
   isRoot(): boolean {
@@ -328,7 +329,7 @@ export class Service {
 
   /**
    * Determines if the service is a leaf node in the local service tree
-   * 
+   *
    * @returns {boolean}
    */
   isLeaf(): boolean {
@@ -337,8 +338,8 @@ export class Service {
 
   /**
    * Determines and returns all root node services in the global service tree
-   * 
-   * @param {Array<Service>} services service tree to search through (default is global)
+   *
+   * @param {Array<Service>} [services] service tree to search through (default is global)
    * @returns {Array<Service>}
    */
   static findRoots(services = _services): Array {
@@ -347,8 +348,8 @@ export class Service {
 
   /**
    * Determines and returns all leaf node services in the global service tree
-   * 
-   * @param {Array<Service>} services service tree to search through (default is global)
+   *
+   * @param {Array<Service>} [services] service tree to search through (default is global)
    * @returns {Array<Service>}
    */
   static findLeafs(services = _services): Array {
@@ -357,9 +358,9 @@ export class Service {
 
   /**
    * Determines and returns the nodes (out of the provided service tree) at the target depth
-   * 
+   *
    * @param {number} targetDepth
-   * @param {Array<Service>} nodes service tree to search through (default is global)
+   * @param {Array<Service>} [nodes] service tree to search through (default is global)
    * @returns {Array<Service>}
    */
   static findAtDepth(targetDepth: number, nodes: Array = []): Array {
@@ -383,8 +384,8 @@ export class Service {
 
   /**
    * Determines if a cyclic relationship exists anywhere in the provided service tree
-   * 
-   * @param {Array<Service>} services service tree to search through (default is global)
+   *
+   * @param {Array<Service>} [services] service tree to search through (default is global)
    * @returns {boolean}
    */
   static cycleExists(services = _services): boolean {
@@ -421,7 +422,8 @@ export class Service {
 
   /**
    * Determines if a service name is already registered in the global service tree
-   * 
+   *
+   * @param {string} name
    * @returns {boolean}
    */
   static isRegistered(name: string): boolean {

@@ -9,7 +9,7 @@ export class Subscription {
 
   /**
    * A topic-based data matcher that reacts to a service's publications
-   * 
+   *
    * @param {Service} service
    * @param {Object} topic topic/pattern to react to ('*' or '$' is wildcard)
    * @param {Function} on functionality to be triggered on successful match
@@ -24,7 +24,7 @@ export class Subscription {
 
   /**
    * Determines data or a subset of data that matches subscription topic
-   * 
+   *
    * @param {*} data
    * @returns {Set} data matching subsubscription
    */
@@ -45,7 +45,7 @@ export class Subscription {
   /**
    * Determines if data matches the subsubscription and, if so, allows
    * the subsubscription to mutate and return the data.
-   * 
+   *
    * @param {boolean} passive return either untouched data on mismatch (true) or null on mismatch (false)
    * @returns {*} subsubscription modified data
    */
@@ -57,7 +57,7 @@ export class Subscription {
    * Unsubscribes a subsubscription from its service and mark it as inactive.
    * Subscription will not react to any messages from service until activated again.
    *
-   * @param {?boolean} freeze the object after unsubscription, preventing any further changes to Subscription
+   * @param {boolean} [freeze] freeze the object after unsubscription, preventing any further changes to Subscription
    */
   end(freeze?: boolean = false) {
     this.service.subscriptions.splice(this.service.subscriptions.indexOf(this), 1)
