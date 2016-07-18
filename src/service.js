@@ -436,11 +436,11 @@ export class Service {
  * Alternative destructured alias or Service constructor
  * 
  * @param {string} name
- * @param {?Function} model
- * @param {?*} state
- * @param {?Service} parent
- * @param {?Array<Service>} children
- * @param {?Object} config
+ * @param {Function} [model]
+ * @param {*} [state]
+ * @param {Service} [parent]
+ * @param {Array<Service>} [children]
+ * @param {Object} [config]
  * @returns {Service}
  */
 export const service = ({ name, model, state, parent, children, config }) => new Service(name, model, state, parent, children, config)
