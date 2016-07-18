@@ -1,4 +1,4 @@
-import * as jsonWhere  from 'json-where'
+import { $,  which   } from 'json-where'
 import { is, isEmpty } from './util'
 
 /**
@@ -56,7 +56,7 @@ export class JsonWhereTopic extends Topic {
    * @return {Array<*>} data set matching JsonWhere
    */
   matches(data): Array {
-    return jsonWhere.$(this.key, data).all()
+    return $(this.key, data).all()
   }
 
   /**
@@ -66,7 +66,7 @@ export class JsonWhereTopic extends Topic {
    * @return {boolean}
    */
   static appliesTo(data): boolean {
-    return !!jsonWhere.which(data)
+    return !!which(data)
   }
 
 }

@@ -1,6 +1,6 @@
-import { Service } from './service'
-import * as topic  from './topic'
-import * as util   from './util'
+import { Service  } from './service'
+import { identify } from './topic'
+import { isEmpty  } from './util'
 
 /**
  * A topic-based data matcher that reacts to a service's publications
@@ -32,9 +32,9 @@ export class Subscription {
     const matchSet = new Set()
 
     if (this.active && this.service.config.data.matching) {
-      const topicMatches = topic.identify(this.topic).matches(data)
+      const topicMatches = identify(this.topic).matches(data)
 
-      if (!util.isEmpty(topicMatches)) {
+      if (!isEmpty(topicMatches)) {
         matchSet.add(...topicMatches)
       }
     }

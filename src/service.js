@@ -1,6 +1,6 @@
 import { Subscription } from './subscription'
-import * as traversals  from './traverse'
-import * as util        from './util'
+import { step } from './traverse'
+import { isEmpty, values as valuesIn } from './util'
 
 /**
  * Map of all registered services, indexed by name
@@ -247,7 +247,7 @@ export class Service {
    * @returns {Promise}
    */
   traverse(traversal: string, direction: string, data, action: Function, next: Function, frontier: Array): Promise {
-    return traversals.step.call(this, traversal, direction, data, action, next, frontier)
+    return step.call(this, traversal, direction, data, action, next, frontier)
   }
 
   /**
@@ -324,7 +324,7 @@ export class Service {
    * @returns {boolean}
    */
   isRoot(): boolean {
-    return util.isEmpty(this.parent)
+    return isEmpty(this.parent)
   }
 
   /**
@@ -333,7 +333,7 @@ export class Service {
    * @returns {boolean}
    */
   isLeaf(): boolean {
-    return util.isEmpty(this.children)
+    return isEmpty(this.children)
   }
 
   /**
@@ -343,7 +343,7 @@ export class Service {
    * @returns {Array<Service>}
    */
   static findRoots(services = _services): Array {
-    return util.values(services).filter(svc => svc instanceof Service && svc.isRoot())
+    return valuesIn(services).filter(svc => svc instanceof Service && svc.isRoot())
   }
 
   /**
@@ -353,7 +353,7 @@ export class Service {
    * @returns {Array<Service>}
    */
   static findLeafs(services = _services): Array {
-    return util.values(services).filter(svc => svc instanceof Service && svc.isLeaf())
+    return valuesIn(services).filter(svc => svc instanceof Service && svc.isLeaf())
   }
 
   /**
@@ -391,8 +391,8 @@ export class Service {
   static cycleExists(services = _services): boolean {
     const roots = Service.findRoots(services) || []
     const found = roots.map(r => r.name)
-    const hasRoots    = !util.isEmpty(roots)
-    const hasServices = !util.isEmpty(services)
+    const hasRoots    = !isEmpty(roots)
+    const hasServices = !isEmpty(services)
 
     if (!hasRoots && hasServices) {
       return true
@@ -404,7 +404,7 @@ export class Service {
     roots.forEach((root, i) => {
       curNode = root
 
-      while (!cyclic && !util.isEmpty(curNode.children)) {
+      while (!cyclic && !isEmpty(curNode.children)) {
         (curNode.children || []).forEach(child => {
           if (!~found.indexOf(child.name)) {
             found.push(child.name)
