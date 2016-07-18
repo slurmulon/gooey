@@ -121,7 +121,7 @@ export class Service {
   }
 
   /**
-   * Creates and registers a publish subsubscription with the Service
+   * Creates and registers a publish subscription with the Service
    *
    * @param {Topic|String} topic
    * @param {Function} [on]
@@ -135,7 +135,7 @@ export class Service {
   }
 
   /**
-   * Deregisters a subsubscription from the Service
+   * Deregisters a subscription from the Service
    *
    * @param {Subscription} subscrip
    * @param {boolean} freeze
@@ -227,7 +227,7 @@ export class Service {
   }
 
   /**
-   * Determines set of data that matches the provided subsubscription's topic
+   * Determines set of data that matches the provided subscription's topic
    *
    * @param {*} data
    * @param {Subscription} subscrip

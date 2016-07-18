@@ -26,7 +26,7 @@ export class Subscription {
    * Determines data or a subset of data that matches subscription topic
    *
    * @param {*} data
-   * @returns {Set} data matching subsubscription
+   * @returns {Set} data matching subscription
    */
   matches(data): Set {
     const matchSet = new Set()
@@ -43,18 +43,18 @@ export class Subscription {
   }
 
   /**
-   * Determines if data matches the subsubscription and, if so, allows
-   * the subsubscription to mutate and return the data.
+   * Determines if data matches the subscription and, if so, allows
+   * the subscription to mutate and return the data.
    *
    * @param {boolean} passive return either untouched data on mismatch (true) or null on mismatch (false)
-   * @returns {*} subsubscription modified data
+   * @returns {*} subscription modified data
    */
   process(data, passive: boolean = true) {
     return this.matches(data).size ? this.on(data) : (passive ? data : null)
   }
 
   /**
-   * Unsubscribes a subsubscription from its service and mark it as inactive.
+   * Unsubscribes a subscription from its service and mark it as inactive.
    * Subscription will not react to any messages from service until activated again.
    *
    * @param {boolean} [freeze] freeze the object after unsubscription, preventing any further changes to Subscription
@@ -68,7 +68,7 @@ export class Subscription {
   }
 
   /**
-   * Activates the subsubscription, permitting it to react to topic-based messages
+   * Activates the subscription, permitting it to react to topic-based messages
    */
   start() {
     this.active = true
