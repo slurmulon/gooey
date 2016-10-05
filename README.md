@@ -13,6 +13,7 @@ Gooey intends to alleviate data and state synchronization challenges in Single P
 * `Services` are canonical sources of entity states
 * `Services` are proxies (data can be safely mutated by a `Service` before being passed on)
 * `Promises` everywhere
+* Emphasize reactive data structures instead of events or control flows (but don't prevent this)
 * URLs are often clumsy or inadequate for representing every view state (i.e. those containing multiple selectable entities that affect other components) and should not act as a canonical source of state
 * Components that exist out of view or on other "pages" are often functionally relevant even though they aren't _contextually_ relevant (in other words, state should stick by default instead of being forcefully re-evaluated)
 
@@ -182,13 +183,13 @@ The following example outlines the most basic use-case of Gooey - a simple 1:1 p
 import * as gooey from 'gooey'
 
 // publisher service
-const pub = gooey.service({name: 'pub'})
+const pub = gooey.service({ name: 'pub' })
 
 // subscriber - matches any published object
 const sub = pub.on('*', (data) => data.$modified = new Date())
 
 pub
-  .publish({foo: 'bar'})
+  .publish({ foo: 'bar' })
   .then(data => console.log(`data modified on ${data.$modified}`))
   .catch(err => console.log(`data failed to publish`, err))
 ```
@@ -270,11 +271,11 @@ Gooey is still in its very early stages. Please feel free to message [me@madhax.
 - [ ] Composite/Nested `Services`
 - [ ] Integrate [Object.observer](http://mzl.la/1OXjS2Q) or [Proxy object shim](https://github.com/tvcutsem/harmony-reflect)
 
-## Future Modules
+## Roadmap
 
 - [X] `gooey.http`
 - [ ] `gooey.dom` (in prog.)
-- [ ] `gooey.stream`
 - [ ] `gooey.debug`
 - [ ] `gooey.web` (dependent on `core`, `http`, `dom`, and `debug`)
-- [ ] `hyper.goo` (JSON Hyper-Schema parser)
+- [ ] `gooey.socket` (state management on top of socket.io)
+- [ ] `gooey.api` (express-based API library with webhook support)
