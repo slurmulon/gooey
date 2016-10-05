@@ -70,14 +70,14 @@ export class Subscription {
   /**
    * Activates the subscription, permitting it to react to topic-based messages
    */
-  start() {
+  start () {
     this.active = true
   }
 
   /**
    * For sane debugging
    */
-  toString() {
+  toString () {
     return `[gooey.Service:${this.name}]`
   }
 

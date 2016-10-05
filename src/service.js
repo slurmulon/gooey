@@ -453,4 +453,3 @@ export const services = (() => _services)
  * Detaches services from module
  */
 export const clear = () => { _services = {} }
-

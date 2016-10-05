@@ -121,4 +121,3 @@ export function add (strategy) {
 }
 
 export default { strategies, step, add }
-
