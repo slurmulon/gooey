@@ -38,7 +38,7 @@ export class Service {
    * @param {Array<Service>} [children]
    * @param {Object} [config]
    */
-  constructor(
+  constructor (
     name      : string,
     model?    : Function,
     state?    : Object = {},
@@ -73,7 +73,7 @@ export class Service {
    *
    * @returns {Object}
    */
-  get data() {
+  get data () {
     return this.state
   }
 
@@ -82,7 +82,7 @@ export class Service {
    *
    * @param {*} data
    */
-  set data(data) {
+  set data (data) {
     this.update(data)
   }
 
@@ -95,9 +95,9 @@ export class Service {
    * @param {Array<Service>} [frontier] tracks all services encountered during publication. use caution with overriding this value.
    * @returns {Promise} deferred service tree traversal(s)
    */
-  // TODO - Allows users to provide a custom collision resolver
-  // TODO - Allow users to publish data with a simple key
-  publish(data, traversal: string = 'breadth', direction: string = 'down', frontier: Array = []): Promise {
+  // TODO: Allow users to provide a custom collision resolver
+  // TODO: Allow users to publish data with a simple key
+  publish (data, traversal: string = 'breadth', direction: string = 'down', frontier: Array = []): Promise {
     return new Promise((resolve, reject) => {
       // ensure data is pure
       data = data instanceof Object ? Object.assign({}, data) : data
@@ -126,7 +126,7 @@ export class Service {
    * @param {Topic|String} topic
    * @param {Function} [on]
    */
-  subscribe(topic = '*', on?: Function = _ => _): Subscription {
+  subscribe (topic = '*', on?: Function = _ => _): Subscription {
     const subscrip = new Subscription(this, topic, on)
 
     this.subscriptions.push(subscrip)
@@ -140,7 +140,7 @@ export class Service {
    * @param {Subscription} subscrip
    * @param {boolean} freeze
    */
-  unsubscribe(subscrip: Subscription, freeze: boolean = false) {
+  unsubscribe (subscrip: Subscription, freeze: boolean = false) {
     subscrip.end(freeze)
   }
 
@@ -150,7 +150,7 @@ export class Service {
    * @param {*} data
    * @returns {Promise}
    */
-  update(data, ...rest): Promise {
+  update (data, ...rest): Promise {
     this.state = data
 
     return this.publish(data, ...rest)
@@ -161,10 +161,9 @@ export class Service {
    * data object and publishs the change
    *
    * @param {*} data
-   * @param {Function} [error]
    * @returns {Promise}
    */
-  merge(data, ...rest): Promise {
+  merge (data, ...rest): Promise {
     const merged = data instanceof Object ? Object.assign({}, this.state, data) : this.state
 
     return this.update(merged, ...rest)
@@ -175,10 +174,9 @@ export class Service {
    * publishes the change
    *
    * @param {*} data
-   * @param {Function} [error]
    * @returns {Promise}
    */
-  add(data, ...rest): Promise {
+  add (data, ...rest): Promise {
     if (this.state instanceof Array) {
       this.state.push(data)
       this.update(this.state, ...rest)
@@ -191,7 +189,7 @@ export class Service {
    * @param {*} data
    * @returns {Promise}
    */
-  use(data, ...rest): Promise {
+  use (data, ...rest): Promise {
     return this.update(data, ...rest)
   }
 
@@ -201,7 +199,7 @@ export class Service {
    * @param {*} data
    * @returns {Promise}
    */
-  up(data, ...rest): Promise {
+  up (data, ...rest): Promise {
     return this.merge(data, ...rest)
   }
 
@@ -212,7 +210,7 @@ export class Service {
    * @param {Function} on
    * @returns {Subscription}
    */
-  on(topic, on: Function): Subscription {
+  on (topic, on: Function): Subscription {
     return this.subscribe(topic, on)
   }
 
@@ -222,7 +220,7 @@ export class Service {
    * @param {Subscription} subscrip
    * @param {boolean} freeze
    */
-  off(subscrip: Subscription, freeze: boolean = false) {
+  off (subscrip: Subscription, freeze: boolean = false) {
     return this.unsubscribe(subscrip, freeze)
   }
 
@@ -233,7 +231,7 @@ export class Service {
    * @param {Subscription} subscrip
    * @returns {Set}
    */
-  matches(data, subscrip: Subscription) { // TODO - report issue with flow, value gets coerced to Array
+  matches (data, subscrip: Subscription) { // TODO - report issue with flow, value gets coerced to Array
     return subscrip.matches(data)
   }
 
@@ -241,12 +239,13 @@ export class Service {
    * Recursively traverses service tree via provided `next` function
    *
    * @param {string} traversal supported values defined by gooey.traverse.strategies
-   * @param {string} direction up, down or bi
-   * @param {Array<Service>} [frontier] tracks all services encountered during publication
+   * @param {string} direction
+   * @param {Function} action
    * @param {Promise|Function} next
+   * @param {Array<Service>} [frontier]
    * @returns {Promise}
    */
-  traverse(traversal: string, direction: string, data, action: Function, next: Function, frontier: Array): Promise {
+  traverse (traversal: string, direction: string, data, action: Function, next: Function, frontier: Array): Promise {
     return step.call(this, traversal, direction, data, action, next, frontier)
   }
 
@@ -259,7 +258,7 @@ export class Service {
    * @param {Service} child service to relate to
    * @returns {Service} modified service with new child relationship
    */
-  relateTo(child: Service): Service {
+  relateTo (child: Service): Service {
     this.children.push(child)
 
     // if (Service.cycleExists()) {
@@ -277,7 +276,7 @@ export class Service {
    * @param {Array<Service>} children services to relate to
    * @returns {Array<Service>} modified children services with new parent relationship
    */
-  relateToAll(children: Array): Array {
+  relateToAll (children: Array): Array {
     return children.map(c => {
       c.parent = this
 
@@ -293,7 +292,7 @@ export class Service {
    * @param {Service} node relative/starting service
    * @returns {number} depth of service
    */
-  depth(node: Service = this): number {
+  depth (node: Service = this): number {
     let nodeDepth = 0
 
     while (node.parent) {
@@ -311,7 +310,7 @@ export class Service {
    * @param {boolean} [globe] return siblings across disjoint trees (true) or siblings in connected hierarchy (false - UNSUPPORTED)
    * @returns {Array<Service>} siblings of service
    */
-  siblings(node: Service = this, globe?: boolean = false): Array {
+  siblings (node: Service = this, globe?: boolean = false): Array {
     const roots = Service.findRoots()
     const depth = node.depth()
 
@@ -323,7 +322,7 @@ export class Service {
    *
    * @returns {boolean}
    */
-  isRoot(): boolean {
+  isRoot (): boolean {
     return isEmpty(this.parent)
   }
 
@@ -332,7 +331,7 @@ export class Service {
    *
    * @returns {boolean}
    */
-  isLeaf(): boolean {
+  isLeaf (): boolean {
     return isEmpty(this.children)
   }
 
@@ -342,7 +341,7 @@ export class Service {
    * @param {Array<Service>} [services] service tree to search through (default is global)
    * @returns {Array<Service>}
    */
-  static findRoots(services = _services): Array {
+  static findRoots (services = _services): Array {
     return valuesIn(services).filter(svc => svc instanceof Service && svc.isRoot())
   }
 
@@ -352,7 +351,7 @@ export class Service {
    * @param {Array<Service>} [services] service tree to search through (default is global)
    * @returns {Array<Service>}
    */
-  static findLeafs(services = _services): Array {
+  static findLeafs (services = _services): Array {
     return valuesIn(services).filter(svc => svc instanceof Service && svc.isLeaf())
   }
 
@@ -363,7 +362,7 @@ export class Service {
    * @param {Array<Service>} [nodes] service tree to search through (default is global)
    * @returns {Array<Service>}
    */
-  static findAtDepth(targetDepth: number, nodes: Array = []): Array {
+  static findAtDepth (targetDepth: number, nodes: Array = []): Array {
     const found  = []
     let curDepth = 0
 
@@ -388,7 +387,7 @@ export class Service {
    * @param {Array<Service>} [services] service tree to search through (default is global)
    * @returns {boolean}
    */
-  static cycleExists(services = _services): boolean {
+  static cycleExists (services = _services): boolean {
     const roots = Service.findRoots(services) || []
     const found = roots.map(r => r.name)
     const hasRoots    = !isEmpty(roots)
@@ -426,7 +425,7 @@ export class Service {
    * @param {string} name
    * @returns {boolean}
    */
-  static isRegistered(name: string): boolean {
+  static isRegistered (name: string): boolean {
     return Array.from(_services).map(serv => serv.name).indexOf(name) >= 0
   }
 
@@ -454,3 +453,4 @@ export const services = (() => _services)
  * Detaches services from module
  */
 export const clear = () => { _services = {} }
+

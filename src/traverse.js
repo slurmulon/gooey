@@ -14,7 +14,7 @@ export const strategies = {
      * @param {Array<Service>} frontier list of visited nodes in traversal
      * @returns {Promise} asynchronous mapping of node "steps"
      */
-    up: function(next: Function, data, frontier: Array) {
+    up: function (next: Function, data, frontier: Array) {
       const stepper  = (node) => next(node, data, frontier)
       const siblings = this.parent.siblings(undefined, true)
       const nodes    = [this.parent].concat(siblings)
@@ -30,7 +30,7 @@ export const strategies = {
      * @param {Array<Service>} frontier list of visited nodes in traversal
      * @returns {Promise} asynchronous mapping of node "steps"
      */
-    down: function(next: Function, data, frontier: Array) {
+    down: function (next: Function, data, frontier: Array) {
       const stepper = (node) => next(node, data, frontier)
 
       return Promise.all(this.children.map(stepper))
@@ -49,7 +49,7 @@ export const strategies = {
      * @param {Array<Service>} frontier list of visited nodes in traversal
      * @returns {Promise} asynchronous mapping of node "steps"
      */
-    down: function(next: Function, data, frontier: Array) {
+    down: function (next: Function, data, frontier: Array) {
       const stepper = (node) => next(node, data, frontier)
 
       return this.children.map(stepper)
@@ -80,7 +80,7 @@ export const strategies = {
  * @param {Function} next function to invoke next after node is visited (typically `publish`)
  * @returns {Promise}
  */
-export function step(name: string, direction: string, data, action: Function, next: Function, frontier: Array = []): Promise {
+export function step (name: string, direction: string, data, action: Function, next: Function, frontier: Array = []): Promise {
   const traversal = strategies[name][direction]
 
   if (traversal) {
@@ -116,8 +116,9 @@ export function step(name: string, direction: string, data, action: Function, ne
  *
  * @param {Object} strategy
  */
-export function add(strategy) {
+export function add (strategy) {
   Object.assign(strategies, strategy)
 }
 
 export default { strategies, step, add }
+

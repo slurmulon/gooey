@@ -25,3 +25,4 @@ export const values = (obj) => Object.keys(obj).map((key) => obj[key])
 
 
 export default { is, isEmpty, mix, entries, values }
+

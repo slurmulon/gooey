@@ -14,8 +14,8 @@ export class Subscription {
    * @param {Object} topic topic/pattern to react to ('*' or '$' is wildcard)
    * @param {Function} on functionality to be triggered on successful match
    */
-  constructor(service: Service, topic, on: Function) {
-    // this.key = key // TODO -> will allow subscriptions to be triggered via simple keys
+  constructor (service: Service, topic, on: Function) {
+    // this.key = key // TODO: will allow subscriptions to be triggered via simple keys
     this.service = service
     this.topic = topic
     this.on = on
@@ -28,7 +28,7 @@ export class Subscription {
    * @param {*} data
    * @returns {Set} data matching subscription
    */
-  matches(data): Set {
+  matches (data): Set {
     const matchSet = new Set()
 
     if (this.active && this.service.config.data.matching) {
@@ -49,7 +49,7 @@ export class Subscription {
    * @param {boolean} passive return either untouched data on mismatch (true) or null on mismatch (false)
    * @returns {*} subscription modified data
    */
-  process(data, passive: boolean = true) {
+  process (data, passive: boolean = true) {
     return this.matches(data).size ? this.on(data) : (passive ? data : null)
   }
 
@@ -59,7 +59,7 @@ export class Subscription {
    *
    * @param {boolean} [freeze] freeze the object after unsubscription, preventing any further changes to Subscription
    */
-  end(freeze?: boolean = false) {
+  end (freeze?: boolean = false) {
     this.service.subscriptions.splice(this.service.subscriptions.indexOf(this), 1)
 
     this.active = false
@@ -82,3 +82,4 @@ export class Subscription {
   }
 
 }
+

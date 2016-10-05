@@ -11,7 +11,7 @@ export class Topic {
   /**
    * @param {*} key value to use as comparator when matching topics 
    */
-  constructor(key) {
+  constructor (key) {
     this.key = key
   }
 
@@ -21,17 +21,17 @@ export class Topic {
    * @param {Object} data
    * @return {*} data matching topic key
    */
-  matches(data): Array {
+  matches (data): Array {
     return is(this.key, data) ? [data] : []
   }
-  
+
   /**
    * Determines if provided data can be used as a topic key
    *
    * @param {Object} data
    * @return {boolean} true
    */
-  static appliesTo(data): boolean {
+  static appliesTo (data): boolean {
     return true
   }
 
@@ -45,17 +45,17 @@ export class JsonWhereTopic extends Topic {
   /**
    * @param {string} key valid JsonWhere query string
    */
-  constructor(key) {
+  constructor (key) {
     super(key)
   }
 
   /**
    * Determines the set / subset of data that matches JsonWhere
    *
-   * @param {Object} data  
+   * @param {Object} data
    * @return {Array<*>} data set matching JsonWhere
    */
-  matches(data): Array {
+  matches (data): Array {
     return $(this.key, data).all()
   }
 
@@ -65,7 +65,7 @@ export class JsonWhereTopic extends Topic {
    * @param {string} data
    * @return {boolean}
    */
-  static appliesTo(data): boolean {
+  static appliesTo (data): boolean {
     return !!which(data)
   }
 
@@ -74,13 +74,13 @@ export class JsonWhereTopic extends Topic {
 /**
  * Performs pseudo-reflection on the provided data (typically String)
  * in order to imply which Topic the data is intended to be
- * 
+ *
  * Returns a base Topic with simple equality comparison in the case of a mis-match
  *
  * @param {*} data potential topic to identify
  * @return {Topic} identified Topic
  */
-export function identify(data): Topic {
+export function identify (data): Topic {
   if (is(data.constructor, String) && JsonWhereTopic.appliesTo(data)) {
     return new JsonWhereTopic(data)
   }
