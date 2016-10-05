@@ -36,8 +36,7 @@ The states and interactions between these components and their layers often span
 In this dynamic context, the provider layer (HTTP server) is stateless while the consumer layer (HTTP clients) is inherently stateful.
 The consumer is therefore responsible for ensuring that its components' states are synchronized properly with that of the provider.
 
-This architecture allows consumer states to diverge from their providers, and it happens quite easily. This is especially prevelant true when
-provider representation states and/or sub-states are denormalized.
+This architecture allows consumer states to diverge from their providers, and it happens quite easily. This is especially prevelant when provider representation states and/or sub-states are denormalized.
 
 Gooey aims to ease the management of high-level, complex multi-layer component states by isolating, refining and consolidating the imperative patterns into a single library.
 
